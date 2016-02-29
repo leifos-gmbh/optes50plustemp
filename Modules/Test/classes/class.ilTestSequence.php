@@ -9,7 +9,7 @@ require_once 'Modules/Test/interfaces/interface.ilTestQuestionSequence.php';
 * This class manages the sequence settings for a given user
 *
 * @author		Helmut Schottmüller <helmut.schottmueller@mac.com>
-* @version	$Id: class.ilTestSequence.php 57952 2015-02-10 13:17:16Z bheyser $
+* @version	$Id: class.ilTestSequence.php 60741 2015-09-17 08:53:32Z bheyser $
 * @ingroup ModulesTest
 */
 class ilTestSequence implements ilTestQuestionSequence
@@ -856,6 +856,11 @@ class ilTestSequence implements ilTestQuestionSequence
 	public function setConsiderOptionalQuestionsEnabled($considerOptionalQuestionsEnabled)
 	{
 		$this->considerOptionalQuestionsEnabled = $considerOptionalQuestionsEnabled;
+	}
+
+	public function questionExists($questionId)
+	{
+		return in_array($questionId, $this->questions);
 	}
 }
 

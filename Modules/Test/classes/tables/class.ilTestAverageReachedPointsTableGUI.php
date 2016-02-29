@@ -6,7 +6,7 @@ include_once('./Services/Table/classes/class.ilTable2GUI.php');
 
 /**
  * @author  Helmut Schottmüller <ilias@aurealis.de>
- * @version $Id: class.ilTestAverageReachedPointsTableGUI.php 56504 2014-12-17 10:21:06Z bheyser $
+ * @version $Id: class.ilTestAverageReachedPointsTableGUI.php 60741 2015-09-17 08:53:32Z bheyser $
  * @ingroup ModulesTest
  */
 class ilTestAverageReachedPointsTableGUI extends ilTable2GUI
@@ -19,6 +19,9 @@ class ilTestAverageReachedPointsTableGUI extends ilTable2GUI
 	 */
 	public function __construct($a_parent_obj, $a_parent_cmd)
 	{
+		$this->setId('tstAvgReachedPointsTbl');
+		$this->setPrefix('tstAvgReachedPointsTbl');
+		
 		parent::__construct($a_parent_obj, $a_parent_cmd);
 
 		global $lng, $ilCtrl;

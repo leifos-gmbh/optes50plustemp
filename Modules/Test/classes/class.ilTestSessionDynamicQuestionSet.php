@@ -10,7 +10,7 @@ require_once 'Modules/TestQuestionPool/classes/class.ilAssQuestionList.php';
  * Test session handler for tests with mode dynamic question set
  *
  * @author		Björn Heyser <bheyser@databay.de>
- * @version		$Id: class.ilTestSessionDynamicQuestionSet.php 50872 2014-06-20 14:43:27Z bheyser $
+ * @version		$Id: class.ilTestSessionDynamicQuestionSet.php 60741 2015-09-17 08:53:32Z bheyser $
  * 
  * @package		Modules/Test
  */
@@ -71,11 +71,11 @@ class ilTestSessionDynamicQuestionSet extends ilTestSession
 		{
 			$user_id = $ilUser->getId();
 		}
-		if (($_SESSION["AccountId"] == ANONYMOUS_USER_ID) && (strlen($_SESSION["tst_access_code"][$test_id])))
+		if (($_SESSION["AccountId"] == ANONYMOUS_USER_ID) && $this->doesAccessCodeInSessionExists())
 		{
 			$result = $ilDB->queryF("SELECT * FROM tst_active WHERE user_fi = %s AND test_fi = %s AND anonymous_id = %s",
 				array('integer','integer','text'),
-				array($user_id, $test_id, $_SESSION["tst_access_code"][$test_id])
+				array($user_id, $test_id, $this->getAccessCodeFromSession())
 			);
 		}
 		else if (strlen($anonymous_id))
@@ -112,6 +112,10 @@ class ilTestSessionDynamicQuestionSet extends ilTestSession
 			$this->questionSetFilterSelection->setTaxonomySelection(unserialize($row['taxfilter']));
 			$this->questionSetFilterSelection->setAnswerStatusSelection($row['answerstatusfilter']);
 			$this->questionSetFilterSelection->setAnswerStatusActiveId($row['active_id']);
+		}
+		elseif( $this->doesAccessCodeInSessionExists() )
+		{
+			$this->unsetAccessCodeInSession();
 		}
 	}
 	

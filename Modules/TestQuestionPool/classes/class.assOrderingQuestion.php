@@ -17,7 +17,7 @@ require_once './Modules/TestQuestionPool/classes/class.ilUserQuestionResult.php'
  * @author	Björn Heyser <bheyser@databay.de>
  * @author	Maximilian Becker <mbecker@databay.de>
  *         
- * @version		$Id: class.assOrderingQuestion.php 59697 2015-06-30 14:26:53Z bheyser $
+ * @version		$Id: class.assOrderingQuestion.php 60741 2015-09-17 08:53:32Z bheyser $
  * 
  * @ingroup		ModulesTestQuestionPool
  */
@@ -197,11 +197,7 @@ class assOrderingQuestion extends assQuestion implements ilObjQuestionScoringAdj
 		}
 		// duplicate the question in database
 		$this_id = $this->getId();
-		
-		if( (int)$testObjId > 0 )
-		{
-			$thisObjId = $this->getObjId();
-		}
+		$thisObjId = $this->getObjId();
 		
 		$clone = $this;
 		include_once ("./Modules/TestQuestionPool/classes/class.assQuestion.php");
@@ -1527,9 +1523,9 @@ class assOrderingQuestion extends assQuestion implements ilObjQuestionScoringAdj
 			{
 				if($this->getOrderingType() == OQ_TERMS)
 				{
-					if($answer->getAnswerText() == $row["value2"])
+					if($key == $row["value1"])
 					{
-						$elements[$key] = $row["value1"];
+						$elements[$key] = $row["value2"];
 						break;
 					}
 				}

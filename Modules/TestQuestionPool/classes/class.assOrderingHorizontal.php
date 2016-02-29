@@ -14,7 +14,7 @@ require_once './Modules/TestQuestionPool/classes/class.ilUserQuestionResult.php'
  * @author	Björn Heyser <bheyser@databay.de>
  * @author	Maximilian Becker <mbecker@databay.de>
  *          
- * @version	 $Id: class.assOrderingHorizontal.php 59697 2015-06-30 14:26:53Z bheyser $
+ * @version	 $Id: class.assOrderingHorizontal.php 60741 2015-09-17 08:53:32Z bheyser $
  * 
  * @ingroup	ModulesTestQuestionPool
  */
@@ -142,11 +142,7 @@ class assOrderingHorizontal extends assQuestion implements ilObjQuestionScoringA
 		}
 		// duplicate the question in database
 		$this_id = $this->getId();
-		
-		if( (int)$testObjId > 0 )
-		{
-			$thisObjId = $this->getObjId();
-		}
+		$thisObjId = $this->getObjId();
 		
 		$clone = $this;
 		include_once ("./Modules/TestQuestionPool/classes/class.assQuestion.php");

@@ -10,7 +10,7 @@ require_once "./Modules/File/classes/class.ilObjFileAccess.php";
 *
 * @author Sascha Hofmann <shofmann@databay.de> 
 * @author Stefan Born <stefan.born@phzh.ch> 
-* @version $Id: class.ilObjFileGUI.php 60123 2015-07-23 12:04:43Z bheyser $
+* @version $Id: class.ilObjFileGUI.php 60741 2015-09-17 08:53:32Z bheyser $
 *
 * @ilCtrl_Calls ilObjFileGUI: ilMDEditorGUI, ilInfoScreenGUI, ilPermissionGUI, ilShopPurchaseGUI, ilObjectCopyGUI
 * @ilCtrl_Calls ilObjFileGUI: ilExportGUI, ilWorkspaceAccessGUI, ilPortfolioPageGUI, ilCommonActionDispatcherGUI
@@ -202,6 +202,7 @@ class ilObjFileGUI extends ilObject2GUI
 		// repository only
 		if($this->id_type != self::WORKSPACE_NODE_ID)
 		{
+			$forms[self::CFORM_IMPORT] = $this->initImportForm('file');
 			$forms[self::CFORM_CLONE] = $this->fillCloneTemplate(null, "file");		
 		}			
 		

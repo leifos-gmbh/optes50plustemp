@@ -10,7 +10,7 @@ require_once("Services/MetaData/classes/class.ilMDLanguageItem.php");
 * Base class for ilStructureObjects and ilPageObjects (see ILIAS DTD)
 *
 * @author Alex Killing <alex.killing@gmx.de>
-* @version $Id: class.ilLMObject.php 57665 2015-01-30 10:49:28Z smeyer $
+* @version $Id: class.ilLMObject.php 60741 2015-09-17 08:53:32Z bheyser $
 *
 * @ingroup ModulesIliasLearningModule
 */
@@ -1027,9 +1027,12 @@ class ilLMObject
 						// Update Title and description
 						$md = new ilMD($a_lm->getId(), $id, $lmobj->getType());
 						$md_gen = $md->getGeneral();
-						$md_gen->setTitle($title);
-						$md_gen->update();
-						$md->update();
+						if (is_object($md_gen))			// see bug #0015843
+						{
+							$md_gen->setTitle($title);
+							$md_gen->update();
+							$md->update();
+						}
 						ilLMObject::_writeTitle($id, $title);
 					}
 				}

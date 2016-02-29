@@ -29,7 +29,7 @@ include_once './Services/Membership/interfaces/interface.ilMembershipRegistratio
 * Class ilObjCourse
 *
 * @author Stefan Meyer <meyer@leifos.com> 
-* @version $Id: class.ilObjCourse.php 57749 2015-02-03 06:36:22Z bheyser $
+* @version $Id: class.ilObjCourse.php 60741 2015-09-17 08:53:32Z bheyser $
 * 
 */
 class ilObjCourse extends ilContainer implements ilMembershipRegistrationCodes
@@ -2052,7 +2052,8 @@ class ilObjCourse extends ilContainer implements ilMembershipRegistrationCodes
 		include_once "Services/Tracking/classes/class.ilLPStatusWrapper.php";
 		foreach($this->getMembersObject()->getParticipants() as $user_id)
 		{
-		    ilLPStatusWrapper::_updateStatus($this->getId(), $user_id);			
+		    // #15529 - force raise on sync
+		    ilLPStatusWrapper::_updateStatus($this->getId(), $user_id, null, false, false, true);				
 		}				
 	}
 			

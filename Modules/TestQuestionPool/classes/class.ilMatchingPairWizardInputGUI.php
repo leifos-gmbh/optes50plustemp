@@ -7,7 +7,7 @@ require_once 'Services/UIComponent/Glyph/classes/class.ilGlyphGUI.php';
 * This class represents a key value pair wizard property in a property form.
 *
 * @author Helmut Schottmüller <ilias@aurealis.de> 
-* @version $Id: class.ilMatchingPairWizardInputGUI.php 55306 2014-11-19 09:02:42Z bheyser $
+* @version $Id: class.ilMatchingPairWizardInputGUI.php 60741 2015-09-17 08:53:32Z bheyser $
 * @ingroup	ServicesForm
 */
 class ilMatchingPairWizardInputGUI extends ilTextInputGUI
@@ -281,6 +281,7 @@ class ilMatchingPairWizardInputGUI extends ilTextInputGUI
 		$tpl->setVariable("TEXT_POINTS", $lng->txt('points'));
 		$tpl->setVariable("TEXT_DEFINITION", $lng->txt('definition'));
 		$tpl->setVariable("TEXT_TERM", $lng->txt('term'));
+		$tpl->setVariable("TEXT_ACTIONS", $lng->txt('actions'));
 
 		$a_tpl->setCurrentBlock("prop_generic");
 		$a_tpl->setVariable("PROP_GENERIC", $tpl->get());

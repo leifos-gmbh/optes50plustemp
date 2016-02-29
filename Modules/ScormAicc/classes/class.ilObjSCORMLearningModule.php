@@ -10,7 +10,7 @@ require_once "./Modules/ScormAicc/classes/class.ilObjSAHSLearningModule.php";
 * Class ilObjSCORMLearningModule
 *
 * @author Alex Killing <alex.killing@gmx.de>
-* $Id: class.ilObjSCORMLearningModule.php 57749 2015-02-03 06:36:22Z bheyser $
+* $Id: class.ilObjSCORMLearningModule.php 60741 2015-09-17 08:53:32Z bheyser $
 *
 * @ingroup ModulesScormAicc
 */
@@ -233,7 +233,8 @@ class ilObjSCORMLearningModule extends ilObjSAHSLearningModule
 	{
 		global $ilSetting;
 		//condition 1
-		if ($ilSetting->get('scorm_lp_auto_activate',0)) return;
+		$lm_set = new ilSetting("lm");
+		if ($lm_set->get('scorm_lp_auto_activate') != 1) return;
 		//condition 2
 		include_once("./Services/Tracking/classes/class.ilObjUserTracking.php");
 		if (ilObjUserTracking::_enabledLearningProgress() == false) return; 

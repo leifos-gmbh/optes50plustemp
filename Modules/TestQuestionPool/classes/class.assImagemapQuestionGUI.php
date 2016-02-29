@@ -16,7 +16,7 @@ include_once './Modules/Test/classes/inc.AssessmentConstants.php';
  * @author		Björn Heyser <bheyser@databay.de>
  * @author		Maximilian Becker <mbecker@databay.de>
  * 
- * @version	$Id: class.assImagemapQuestionGUI.php 57616 2015-01-28 13:33:33Z smeyer $
+ * @version	$Id: class.assImagemapQuestionGUI.php 60741 2015-09-17 08:53:32Z bheyser $
  * 
  * @ingroup ModulesTestQuestionPool
  */
@@ -644,7 +644,16 @@ class assImagemapQuestionGUI extends assQuestionGUI implements ilGuiQuestionScor
 		// generate the question output
 		include_once "./Services/UICore/classes/class.ilTemplate.php";
 		$template = new ilTemplate("tpl.il_as_qpl_imagemap_question_output.html", TRUE, TRUE, "Modules/TestQuestionPool");
-		$hrefArea = $this->ctrl->getLinkTargetByClass($this->getTargetGuiClass(), $this->getQuestionActionCmd());
+
+		if($this->getQuestionActionCmd())
+		{
+			$hrefArea = $this->ctrl->getLinkTargetByClass($this->getTargetGuiClass(), $this->getQuestionActionCmd());
+		}
+		else
+		{
+			$hrefArea = null;
+		}
+
 		foreach ($this->object->answers as $answer_id => $answer)
 		{
 			$parameter = "&amp;selImage=$answer_id";
@@ -652,9 +661,15 @@ class assImagemapQuestionGUI extends assQuestionGUI implements ilGuiQuestionScor
 			{
 				$parameter = "&amp;remImage=$answer_id";
 			}
+
+			if($hrefArea)
+			{
+				$template->setCurrentBlock("imagemap_area_href");
+				$template->setVariable("HREF_AREA", $hrefArea . $parameter);
+				$template->parseCurrentBlock();
+			}
 			
 			$template->setCurrentBlock("imagemap_area");
-			$template->setVariable("HREF_AREA", $hrefArea . $parameter);
 			$template->setVariable("SHAPE", $answer->getArea());
 			$template->setVariable("COORDS", $answer->getCoords());
 			$template->setVariable("ALT", ilUtil::prepareFormOutput($answer->getAnswertext()));

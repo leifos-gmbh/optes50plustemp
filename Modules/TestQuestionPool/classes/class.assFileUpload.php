@@ -13,7 +13,7 @@ require_once './Modules/TestQuestionPool/interfaces/interface.ilObjFileHandlingQ
  * @author		Björn Heyser <bheyser@databay.de> 
  * @author		Maximilian Becker <mbecker@databay.de> 
  * 
- * @version		$Id: class.assFileUpload.php 57620 2015-01-28 14:30:43Z bheyser $
+ * @version		$Id: class.assFileUpload.php 60741 2015-09-17 08:53:32Z bheyser $
  * 
  * @ingroup		ModulesTestQuestionPool
  */
@@ -154,11 +154,7 @@ class assFileUpload extends assQuestion implements ilObjQuestionScoringAdjustabl
 		}
 		// duplicate the question in database
 		$this_id = $this->getId();
-		
-		if( (int)$testObjId > 0 )
-		{
-			$thisObjId = $this->getObjId();
-		}
+		$thisObjId = $this->getObjId();
 		
 		$clone = $this;
 		include_once ("./Modules/TestQuestionPool/classes/class.assQuestion.php");

@@ -15,7 +15,7 @@ require_once './Modules/Test/classes/class.ilObjTest.php';
  * @author		Helmut Schottmüller <helmut.schottmueller@mac.com>
  * @author		Björn Heyser <bheyser@databay.de>
  * 
- * @version		$Id: class.ilObjQuestionPoolGUI.php 59668 2015-06-30 11:06:40Z bheyser $
+ * @version		$Id: class.ilObjQuestionPoolGUI.php 60741 2015-09-17 08:53:32Z bheyser $
  *
  * @ilCtrl_Calls ilObjQuestionPoolGUI: ilAssQuestionPageGUI, ilQuestionBrowserTableGUI, ilToolbarGUI
  * @ilCtrl_Calls ilObjQuestionPoolGUI: assMultipleChoiceGUI, assClozeTestGUI, assMatchingQuestionGUI
@@ -161,7 +161,10 @@ class ilObjQuestionPoolGUI extends ilObjectGUI
 				$gui->initPreviewSession($ilUser->getId(), (int)$_GET['q_id']);
 				$gui->initHintTracking();
 				$gui->initStyleSheets();
-				
+
+				global $ilHelp;
+				$ilHelp->setScreenIdComponent("qpl");
+
 				$this->ctrl->forwardCommand($gui);
 				break;
 				
@@ -181,6 +184,10 @@ class ilObjQuestionPoolGUI extends ilObjectGUI
 				$q_gui->setQuestionTabs();
 				$q_gui->outAdditionalOutput();
 				$q_gui->object->setObjId($this->object->getId());
+
+				$q_gui->setTargetGuiClass(null);
+				$q_gui->setQuestionActionCmd(null);
+				
 				$question = $q_gui->object;
 				$this->ctrl->saveParameter($this, "q_id");
 				include_once("./Modules/TestQuestionPool/classes/class.ilAssQuestionPageGUI.php");
@@ -239,7 +246,9 @@ class ilObjQuestionPoolGUI extends ilObjectGUI
 				$questionGUI = assQuestionGUI::_getQuestionGUI($q_type, $_GET['q_id']);
 				$questionGUI->object->setObjId($this->object->getId());
 				$questionGUI->setQuestionTabs();
-				
+				global $ilHelp;
+				$ilHelp->setScreenIdComponent("qpl");
+
 				// forward to ilAssQuestionHintsGUI
 				require_once 'Modules/TestQuestionPool/classes/class.ilAssQuestionHintsGUI.php';
 				$gui = new ilAssQuestionHintsGUI($questionGUI);
@@ -278,7 +287,9 @@ class ilObjQuestionPoolGUI extends ilObjectGUI
 				$questionGUI = assQuestionGUI::_getQuestionGUI($q_type, $_GET['q_id']);
 				$questionGUI->object->setObjId($this->object->getId());
 				$questionGUI->setQuestionTabs();
-				
+				global $ilHelp;
+				$ilHelp->setScreenIdComponent("qpl");
+
 				// forward to ilAssQuestionFeedbackGUI
 				require_once 'Modules/TestQuestionPool/classes/class.ilAssQuestionFeedbackEditingGUI.php';
 				$gui = new ilAssQuestionFeedbackEditingGUI($questionGUI, $ilCtrl, $ilAccess, $tpl, $ilTabs, $lng);
@@ -341,6 +352,8 @@ class ilObjQuestionPoolGUI extends ilObjectGUI
 					$this->object->addQuestionChangeListeners($q_gui->object);
 				}
 				$q_gui->setQuestionTabs();
+				global $ilHelp;
+				$ilHelp->setScreenIdComponent("qpl");
 				$ret = $this->ctrl->forwardCommand($q_gui);
 				break;
 		}

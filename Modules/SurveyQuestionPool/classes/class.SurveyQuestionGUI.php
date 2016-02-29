@@ -28,7 +28,7 @@
 * for survey question types to be used for all parent classes.
 *
 * @author		Helmut Schottmüller <helmut.schottmueller@mac.com>
-* @version	$Id: class.SurveyQuestionGUI.php 56566 2014-12-18 09:04:57Z smeyer $
+* @version	$Id: class.SurveyQuestionGUI.php 60741 2015-09-17 08:53:32Z bheyser $
 * @ingroup ModulesSurveyQuestionPool
 */
 abstract class SurveyQuestionGUI 
@@ -801,14 +801,16 @@ abstract class SurveyQuestionGUI
 			}
 
 			$exp = new ilMaterialExplorer($this, 'addMaterial', $_SESSION["link_new_type"]);
-			$exp->setPathOpen((int)$_GET["ref_id"]);
-			
-			include_once "Services/UIComponent/Panel/classes/class.ilPanelGUI.php";
-			$panel = ilPanelGUI::getInstance();
-			$panel->setHeading($this->lng->txt("select_object_to_link"));
-			$panel->setBody($exp->getHTML());
-			
-			$this->tpl->setContent($panel->getHTML());
+			$exp->setPathOpen((int)$_GET["ref_id"]);			
+			if (!$exp->handleCommand())
+			{			
+				include_once "Services/UIComponent/Panel/classes/class.ilPanelGUI.php";
+				$panel = ilPanelGUI::getInstance();
+				$panel->setHeading($this->lng->txt("select_object_to_link"));
+				$panel->setBody($exp->getHTML());
+
+				$this->tpl->setContent($panel->getHTML());
+			}
 		}
 	}
 	

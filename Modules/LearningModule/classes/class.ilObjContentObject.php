@@ -14,7 +14,7 @@ require_once("./Services/Xml/classes/class.ilNestedSetXML.php");
 * @author Alex Killing <alex.killing@gmx.de>
 * @author Sascha Hofmann <saschahofmann@gmx.de>
 *
-* @version $Id: class.ilObjContentObject.php 57673 2015-01-30 12:51:51Z smeyer $
+* @version $Id: class.ilObjContentObject.php 60741 2015-09-17 08:53:32Z bheyser $
 *
 * @ingroup ModulesIliasLearningModule
 */
@@ -2613,6 +2613,9 @@ class ilObjContentObject extends ilObject
 		// template workaround: reset of template 
 		$tpl = new ilTemplate("tpl.main.html", true, true);
 		$tpl->addBlockFile("CONTENT", "content", "tpl.adm_content.html");
+
+		include_once("./Services/COPage/classes/class.ilPCQuestion.php");
+		ilPCQuestion::resetInitialState();
 
 		$_GET["obj_id"] = $a_lm_page_id;
 		$_GET["frame"] = $a_frame;

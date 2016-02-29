@@ -25,7 +25,7 @@
 * Material Explorer for survey question pools
 *
 * @author Helmut Schottmüller <helmut.schottmueller@mac.com>
-* @version $Id: class.ilMaterialExplorer.php 55745 2014-12-01 09:23:18Z bheyser $
+* @version $Id: class.ilMaterialExplorer.php 60741 2015-09-17 08:53:32Z bheyser $
 *
 * @ingroup ModulesSurveyQuestionPool
 */
@@ -46,6 +46,7 @@ class ilMaterialExplorer extends ilTreeExplorerGUI
 		
 		$this->setTypeWhiteList(array("root", "cat", "grp", "fold", "crs", $this->current_type));
 		$this->setSkipRootNode(true);
+		$this->setAjax(true);
 	}
 	
 	function getNodeContent($a_node)

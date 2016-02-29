@@ -5,7 +5,7 @@
 * Class ilExerciseMembers
 *
 * @author Stefan Meyer <meyer@leifos.com>
-* @version $Id: class.ilExerciseMembers.php 50855 2014-06-20 11:56:50Z jluetzen $
+* @version $Id: class.ilExerciseMembers.php 60741 2015-09-17 08:53:32Z bheyser $
 *
 * @ingroup ModulesExercise
 */
@@ -269,8 +269,12 @@ class ilExerciseMembers
 	{
 		global $ilDB;
 
-		$query = "SELECT DISTINCT(usr_id) as ud FROM exc_members ".
-			"WHERE obj_id = ".$ilDB->quote($a_obj_id, "integer");
+		// #14963 - see ilExAssignment::getMemberListData()
+		$query = "SELECT DISTINCT(excm.usr_id) ud".
+			" FROM exc_members excm".
+			" JOIN object_data od ON (od.obj_id = excm.usr_id)".
+			" WHERE excm.obj_id = ".$ilDB->quote($a_obj_id, "integer").
+			" AND od.type = ".$ilDB->quote("usr", "text");
 
 		$res = $ilDB->query($query);
 		while($row = $ilDB->fetchObject($res))

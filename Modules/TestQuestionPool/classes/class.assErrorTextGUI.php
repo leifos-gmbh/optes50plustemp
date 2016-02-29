@@ -14,7 +14,7 @@ require_once './Modules/Test/classes/inc.AssessmentConstants.php';
  * @author		Björn Heyser <bheyser@databay.de>
  * @author		Maximilian Becker <mbecker@databay.de>
  * 
- * @version		$Id: class.assErrorTextGUI.php 57331 2015-01-22 10:14:28Z jluetzen $
+ * @version		$Id: class.assErrorTextGUI.php 60741 2015-09-17 08:53:32Z bheyser $
  * 
  * @ingroup 	ModulesTestQuestionPool
  * 
@@ -447,7 +447,7 @@ class assErrorTextGUI extends assQuestionGUI implements ilGuiQuestionScoringAdju
 	{
 		$selection = $this->object->getBestSelection(false);
 
-		if( !$this->object->feedbackOBJ->specificAnswerFeedbackExists(array_values($selection)) )
+		if( !$this->object->feedbackOBJ->specificAnswerFeedbackExists(array_keys($selection)) )
 		{
 			return '';
 		}

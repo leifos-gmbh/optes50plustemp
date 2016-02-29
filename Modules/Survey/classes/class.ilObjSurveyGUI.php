@@ -7,7 +7,7 @@ include_once "./Services/Object/classes/class.ilObjectGUI.php";
 * Class ilObjSurveyGUI
 *
 * @author		Helmut Schottmüller <helmut.schottmueller@mac.com>
-* @version  $Id: class.ilObjSurveyGUI.php 56504 2014-12-17 10:21:06Z bheyser $
+* @version  $Id: class.ilObjSurveyGUI.php 60741 2015-09-17 08:53:32Z bheyser $
 *
 * @ilCtrl_Calls ilObjSurveyGUI: ilSurveyEvaluationGUI, ilSurveyExecutionGUI
 * @ilCtrl_Calls ilObjSurveyGUI: ilMDEditorGUI, ilPermissionGUI
@@ -1641,7 +1641,12 @@ class ilObjSurveyGUI extends ilObjectGUI
 				if(!$this->object->checkSurveyCode($anonymous_code)) // #15031 - valid as long survey is not finished
 				{
 					$anonymous_code = null;
-				}				
+				}		
+				else
+				{
+					// #15860
+					$this->object->bindSurveyCodeToUser($ilUser->getId(), $anonymous_code);
+				}
 			}
 			if ($anonymous_code)
 			{

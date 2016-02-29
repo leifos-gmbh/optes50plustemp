@@ -1,7 +1,7 @@
 /**
  * ILIAS Open Source Test & Assessment styles
  *
- * @revision        $Id: ta.css 59700 2015-06-30 14:34:35Z bheyser $
+ * @revision        $Id: ta.css 60753 2015-09-17 14:07:42Z bheyser $
  */
 
 .kiosk {
@@ -577,4 +577,9 @@ table.imagemapareas tr.active-area, table.imagemapareas tr.active-area td {
 .ilTstMarkQuestionButton {
 	width: 16px;
 	height: 16px;
+}
+
+.ilTestLoStatusBar .ilCourseObjectiveProgressBar .ilFloatRight
+{
+	visibility: hidden;
 }

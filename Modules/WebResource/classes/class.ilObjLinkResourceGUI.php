@@ -10,7 +10,7 @@ require_once 'Services/LinkChecker/interfaces/interface.ilLinkCheckerGUIRowHandl
 * Class ilObjLinkResourceGUI
 *
 * @author Stefan Meyer <smeyer.ilias@gmx.de> 
-* @version $Id: class.ilObjLinkResourceGUI.php 56831 2015-01-07 11:22:27Z smeyer $
+* @version $Id: class.ilObjLinkResourceGUI.php 60741 2015-09-17 08:53:32Z bheyser $
 * 
 * @ilCtrl_Calls ilObjLinkResourceGUI: ilMDEditorGUI, ilPermissionGUI, ilInfoScreenGUI, ilObjectCopyGUI
 * @ilCtrl_Calls ilObjLinkResourceGUI: ilExportGUI, ilWorkspaceAccessGUI, ilCommonActionDispatcherGUI
@@ -1526,9 +1526,11 @@ class ilObjLinkResourceGUI extends ilObject2GUI implements ilLinkCheckerGUIRowHa
 		{
 			$url = ilLinkResourceItems::_getFirstLink($obj_id);
 			
-			// handle internal links
-			if(stristr($url["target"], "|"))
-			{
+			// #15647 - handle internal links
+			include_once "Services/Form/classes/class.ilFormPropertyGUI.php";
+			include_once "Services/Form/classes/class.ilLinkInputGUI.php";								
+			if(ilLinkInputGUI::isInternalLink($url["target"]))			
+			{						
 				// #10612
 				$parts = explode("|", $url["target"]);
 				if ($parts[0] == "page")
@@ -1563,9 +1565,11 @@ class ilObjLinkResourceGUI extends ilObject2GUI implements ilLinkCheckerGUIRowHa
 			$item = $items->getItem($_REQUEST["link_id"]);
 			if($item["target"])
 			{
-				// handle internal links
-				if(stristr($item["target"], "|"))
-				{
+				// #15647 - handle internal links
+				include_once "Services/Form/classes/class.ilFormPropertyGUI.php";
+				include_once "Services/Form/classes/class.ilLinkInputGUI.php";								
+				if(ilLinkInputGUI::isInternalLink($item["target"]))
+				{								
 					$parts = explode("|", $item["target"]);
 					if ($parts[0] == "page")
 					{

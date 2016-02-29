@@ -13,7 +13,7 @@ require_once './Modules/TestQuestionPool/interfaces/interface.iQuestionCondition
  * @author		Björn Heyser <bheyser@databay.de>
  * @author		Maximilian Becker <mbecker@databay.de>
  * 
- * @version		$Id: class.assFlashQuestion.php 53148 2014-09-08 09:54:42Z tjoussen $
+ * @version		$Id: class.assFlashQuestion.php 60741 2015-09-17 08:53:32Z bheyser $
  * 
  * @ingroup		ModulesTestQuestionPool
  */
@@ -186,11 +186,7 @@ class assFlashQuestion extends assQuestion implements ilObjQuestionScoringAdjust
 		}
 		// duplicate the question in database
 		$this_id = $this->getId();
-		
-		if( (int)$testObjId > 0 )
-		{
-			$thisObjId = $this->getObjId();
-		}
+		$thisObjId = $this->getObjId();
 		
 		$clone = $this;
 		include_once ("./Modules/TestQuestionPool/classes/class.assQuestion.php");

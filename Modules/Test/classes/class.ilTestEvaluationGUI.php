@@ -15,7 +15,7 @@ require_once 'Modules/TestQuestionPool/classes/class.ilAssQuestionHintTracking.p
  * @author	Björn Heyser <bheyser@databay.de>
  * @author	Maximilian Becker <mbecker@databay.de>
  * 
- * @version		$Id: class.ilTestEvaluationGUI.php 57978 2015-02-11 10:57:57Z bheyser $
+ * @version		$Id: class.ilTestEvaluationGUI.php 60753 2015-09-17 14:07:42Z bheyser $
  * 
  * @ingroup ModulesTest
  *
@@ -1307,6 +1307,14 @@ class ilTestEvaluationGUI extends ilTestServiceGUI
 
 		$template->setCurrentBlock("pass_overview");
 		$overview = $this->getPassOverview($testSession, "iltestevaluationgui", "outUserPassDetails", FALSE, $hide_details);
+		if( $this->getObjectiveOrientedContainer()->isObjectiveOrientedPresentationRequired() )
+		{
+			require_once 'Modules/Test/classes/class.ilTestLearningObjectivesStatusGUI.php';
+			$loStatus = new ilTestLearningObjectivesStatusGUI($this->lng);
+			$loStatus->setCrsObjId($this->getObjectiveOrientedContainer()->getObjId());
+			$loStatus->setUsrId($testSession->getUserId());
+			$overview .= "<br />".$loStatus->getHTML();
+		}
 		$template->setVariable("PASS_OVERVIEW", $overview);
 
 		require_once 'Modules/Test/classes/class.ilTestResultHeaderLabelBuilder.php';

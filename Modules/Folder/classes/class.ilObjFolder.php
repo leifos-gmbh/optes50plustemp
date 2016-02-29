@@ -27,7 +27,7 @@ require_once "./Services/Container/classes/class.ilContainer.php";
 * Class ilObjFolder
 *
 * @author Wolfgang Merkens <wmerkens@databay.de>
-* @version $Id: class.ilObjFolder.php 44216 2013-08-16 07:17:55Z jluetzen $
+* @version $Id: class.ilObjFolder.php 60741 2015-09-17 08:53:32Z bheyser $
 *
 * @extends ilObject
 */
@@ -202,12 +202,17 @@ class ilObjFolder extends ilContainer
 		
 		// default: by type
 		$view = ilContainer::VIEW_BY_TYPE;
-		
-		// get view mode from course
-		if ($course_ref_id = $tree->checkForParentType($this->ref_id,'crs'))
+
+		// always inherit from 
+		$container_ref_id = $tree->checkForParentType($this->ref_id, 'grp');
+		if(!$container_ref_id)
+		{
+			$container_ref_id = $tree->checkForParentType($this->ref_id, 'crs');
+		}
+		if($container_ref_id)
 		{
 			include_once("./Modules/Course/classes/class.ilObjCourseAccess.php");
-			$view_mode = ilObjCourseAccess::_lookupViewMode(ilObject::_lookupObjId($course_ref_id));
+			$view_mode = ilObjCourseAccess::_lookupViewMode(ilObject::_lookupObjId($container_ref_id));
 			if ($view_mode == ilContainer::VIEW_SESSIONS ||
 				$view_mode == ilContainer::VIEW_BY_TYPE ||
 				$view_mode == ilContainer::VIEW_SIMPLE)

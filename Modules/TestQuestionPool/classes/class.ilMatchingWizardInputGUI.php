@@ -10,7 +10,7 @@ require_once 'Services/UIComponent/Glyph/classes/class.ilGlyphGUI.php';
  * @author Helmut Schottmüller <ilias@aurealis.de> 
  * @author Maximilian Becker <mbecker@databay.de> 
  * 
- * @version $Id: class.ilMatchingWizardInputGUI.php 55306 2014-11-19 09:02:42Z bheyser $
+ * @version $Id: class.ilMatchingWizardInputGUI.php 60741 2015-09-17 08:53:32Z bheyser $
  *
  * @ingroup ModulesTestQuestionPool
  */
@@ -276,11 +276,6 @@ class ilMatchingWizardInputGUI extends ilTextInputGUI
 					}
 				}
 			}
-		}
-		else
-		{
-			$this->setAlert($lng->txt("msg_input_is_required"));
-			return FALSE;
 		}
 		return $this->checkSubItemsInput();
 	}

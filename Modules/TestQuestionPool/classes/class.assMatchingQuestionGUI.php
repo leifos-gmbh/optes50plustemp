@@ -16,7 +16,7 @@ require_once './Modules/Test/classes/inc.AssessmentConstants.php';
  * @author		Björn Heyser <bheyser@databay.de>
  * @author		Maximilian Becker <mbecker@databay.de>
  * 
- * @version	$Id: class.assMatchingQuestionGUI.php 57331 2015-01-22 10:14:28Z jluetzen $
+ * @version	$Id: class.assMatchingQuestionGUI.php 60741 2015-09-17 08:53:32Z bheyser $
  * 
  * @ingroup ModulesTestQuestionPool
  */
@@ -317,6 +317,7 @@ class assMatchingQuestionGUI extends assQuestionGUI implements ilGuiQuestionScor
 		}
 		$definitionvalues = $this->object->getDefinitions();
 		$definitions->setValues( $definitionvalues );
+		$definitions->checkInput();
 		$form->addItem( $definitions );
 
 		// Terms
@@ -333,6 +334,7 @@ class assMatchingQuestionGUI extends assQuestionGUI implements ilGuiQuestionScor
 			$this->object->addTerm( new assAnswerMatchingTerm() );
 		$termvalues = $this->object->getTerms();
 		$terms->setValues( $termvalues );
+		$terms->checkInput();
 		$form->addItem( $terms );
 
 		// Matching Pairs

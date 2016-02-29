@@ -4,6 +4,7 @@
 
 require_once("./Services/Object/classes/class.ilObject.php");
 require_once("./Modules/Glossary/classes/class.ilGlossaryTerm.php");
+include_once("./Services/AdvancedMetaData/interfaces/interface.ilAdvancedMetaDataSubItems.php");
 
 /** @defgroup ModulesGlossary Modules/Glossary
  */
@@ -12,11 +13,11 @@ require_once("./Modules/Glossary/classes/class.ilGlossaryTerm.php");
 * Class ilObjGlossary
 *
 * @author Alex Killing <alex.killing@gmx.de>
-* @version $Id: class.ilObjGlossary.php 56831 2015-01-07 11:22:27Z smeyer $
+* @version $Id: class.ilObjGlossary.php 60741 2015-09-17 08:53:32Z bheyser $
 *
 * @ingroup ModulesGlossary
 */
-class ilObjGlossary extends ilObject
+class ilObjGlossary extends ilObject implements ilAdvancedMetaDataSubItems
 {
 
 	/**
@@ -1247,6 +1248,18 @@ class ilObjGlossary extends ilObject
 		return $glo_ids;
 	}
 	
+	public static function getAdvMDSubItemTitle($a_obj_id, $a_sub_type, $a_sub_id)
+	{
+		global $lng;
+		
+		if($a_sub_type == "term")
+		{				
+			$lng->loadLanguageModule("glo");
+			
+			include_once "Modules/Glossary/classes/class.ilGlossaryTerm.php";
+			return $lng->txt("glo_term").' "'. ilGlossaryTerm::_lookGlossaryTerm($a_sub_id).'"';
+		}
+	}
 }
 
 ?>

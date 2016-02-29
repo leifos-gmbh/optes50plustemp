@@ -14,7 +14,7 @@ include_once 'Modules/Test/classes/class.ilTestService.php';
 *
 * @author	Helmut Schottmüller <helmut.schottmueller@mac.com>
 * @author	Björn Heyser <bheyser@databay.de>
-* @version	$Id: class.ilTestServiceGUI.php 60198 2015-07-27 14:13:18Z bheyser $
+* @version	$Id: class.ilTestServiceGUI.php 60741 2015-09-17 08:53:32Z bheyser $
 *
 * @ingroup ModulesTest
 */
@@ -65,7 +65,7 @@ class ilTestServiceGUI
 	protected $testSessionFactory = null;
 	
 	/**
-	 * factory for test sequence
+	 * factory for test session
 	 *
 	 * @var ilTestSequenceFactory 
 	 */
@@ -108,7 +108,7 @@ class ilTestServiceGUI
 		$this->testSessionFactory = new ilTestSessionFactory($this->object);
 		
 		require_once 'Modules/Test/classes/class.ilTestSequenceFactory.php';
-		$this->testSequenceFactory = new ilTestSequenceFactory($ilDB, $lng, $ilPluginAdmin, $this->object);
+		$this->testSequenceFactory = new ilTestSequenceFactory($this->db, $this->lng, $ilPluginAdmin, $this->object);
 
 		$this->objectiveOrientedContainer = null;
 	}

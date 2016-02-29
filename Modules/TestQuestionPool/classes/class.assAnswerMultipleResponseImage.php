@@ -12,7 +12,7 @@ include_once "./Modules/Test/classes/inc.AssessmentConstants.php";
 * indicator (checked/unchecked, set/unset) and an image file
 *
 * @author		Helmut Schottmüller <helmut.schottmueller@mac.com>
-* @version	$Id: class.assAnswerMultipleResponseImage.php 44250 2013-08-18 13:39:51Z mbecker $
+* @version	$Id: class.assAnswerMultipleResponseImage.php 60741 2015-09-17 08:53:32Z bheyser $
 * @ingroup ModulesTestQuestionPool
 * @see ASS_AnswerSimple
 */
@@ -38,7 +38,7 @@ class ASS_AnswerMultipleResponseImage extends ASS_AnswerMultipleResponse {
 * @param string $a_image The image filename
 * @access public
 */
-  function ASS_AnswerMultipleResponseImage (
+  function __construct (
     $answertext = "",
     $points_checked = 0.0,
     $order = 0,

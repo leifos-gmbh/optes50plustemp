@@ -9,6 +9,6 @@ require_once 'Modules/TestQuestionPool/classes/class.ilAssHtmlPurifier.php';
  *
  * @package     Modules/Test
  */
-class ilAssHtmlUserSolutionPurifier extends ilAssHtmlPurifier
+class ilAssHtmlQuestionContentPurifier extends ilAssHtmlPurifier
 {
 } 

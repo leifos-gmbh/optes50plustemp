@@ -15,7 +15,7 @@ require_once './Modules/TestQuestionPool/interfaces/interface.ilObjAnswerScoring
  * @author	Björn Heyser <bheyser@databay.de>
  * @author	Maximilian Becker <mbecker@databay.de>
  *          
- * @version		$Id: class.assTextQuestion.php 57331 2015-01-22 10:14:28Z jluetzen $
+ * @version		$Id: class.assTextQuestion.php 60741 2015-09-17 08:53:32Z bheyser $
  * 
  * @ingroup		ModulesTestQuestionPool
  */
@@ -185,11 +185,7 @@ class assTextQuestion extends assQuestion implements ilObjQuestionScoringAdjusta
 		}
 		// duplicate the question in database
 		$this_id = $this->getId();
-		
-		if( (int)$testObjId > 0 )
-		{
-			$thisObjId = $this->getObjId();
-		}
+		$thisObjId = $this->getObjId();
 		
 		$clone = $this;
 		include_once ("./Modules/TestQuestionPool/classes/class.assQuestion.php");

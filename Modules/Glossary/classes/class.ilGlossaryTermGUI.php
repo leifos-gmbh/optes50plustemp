@@ -8,7 +8,7 @@ require_once("./Modules/Glossary/classes/class.ilGlossaryTerm.php");
 * GUI class for glossary terms
 *
 * @author Alex Killing <alex.killing@gmx.de>
-* @version $Id: class.ilGlossaryTermGUI.php 57074 2015-01-13 13:38:45Z jluetzen $
+* @version $Id: class.ilGlossaryTermGUI.php 60741 2015-09-17 08:53:32Z bheyser $
 *
 * @ilCtrl_Calls ilGlossaryTermGUI: ilTermDefinitionEditorGUI, ilGlossaryDefPageGUI, ilPropertyFormGUI
 *
@@ -354,6 +354,8 @@ class ilGlossaryTermGUI
 				$this->lng->txt("cont_definition")." ".($j+1));
 				$tpl->parseCurrentBlock();
 			}
+
+			ilUtil::includeMathjax($tpl);
 
 			$tpl->setCurrentBlock("definition");
 			$tpl->setVariable("PAGE_CONTENT", $output);

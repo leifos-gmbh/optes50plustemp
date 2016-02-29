@@ -4,7 +4,7 @@
 /**
  * Factory for test session
  * @author         Björn Heyser <bheyser@databay.de>
- * @version        $Id: class.ilTestSessionFactory.php 57620 2015-01-28 14:30:43Z bheyser $
+ * @version        $Id: class.ilTestSessionFactory.php 60741 2015-09-17 08:53:32Z bheyser $
  * @package        Modules/Test
  */
 class ilTestSessionFactory
@@ -65,7 +65,7 @@ class ilTestSessionFactory
 				global $ilUser;
 
 				$testSession->loadTestSession(
-					$this->testOBJ->getTestId(), $ilUser->getId(), $_SESSION["tst_access_code"][$this->testOBJ->getTestId()]
+					$this->testOBJ->getTestId(), $ilUser->getId(), $testSession->getAccessCodeFromSession()
 				);
 
 				return $testSession;
@@ -130,4 +130,3 @@ class ilTestSessionFactory
 		return "{$this->testOBJ->getTestId()}::{$userId}";
 	}
 }
-
