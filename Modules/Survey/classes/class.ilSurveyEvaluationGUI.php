@@ -9,7 +9,7 @@
 * smaller.
 *
 * @author		Helmut Schottmüller <helmut.schottmueller@mac.com>
-* @version	$Id: class.ilSurveyEvaluationGUI.php 55745 2014-12-01 09:23:18Z bheyser $
+* @version	$Id: class.ilSurveyEvaluationGUI.php 60487 2015-08-24 12:37:12Z akill $
 * @ingroup ModulesSurvey
 */
 class ilSurveyEvaluationGUI
@@ -1263,6 +1263,8 @@ class ilSurveyEvaluationGUI
 			include_once("./Services/Skill/classes/class.ilPersonalSkillsGUI.php");
 			$pskills_gui = new ilPersonalSkillsGUI();
 			$pskills_gui->setGapAnalysisActualStatusModePerObject($survey->getId(), $lng->txt("survey_360_raters"));
+
+			// self evaluation
 			if ($survey->getFinishedIdForAppraiseeIdAndRaterId($appr_id, $appr_id) > 0)
 			{
 				$sskill = new ilSurveySkill($survey);
