@@ -13,7 +13,7 @@ include_once "./Modules/Test/classes/inc.AssessmentConstants.php";
  * 
  * @author		Helmut Schottmüller <helmut.schottmueller@mac.com>
  * @author		Björn Heyser <bheyser@databay.de>
- * @version		$Id: class.assQuestion.php 60961 2015-10-02 12:25:22Z bheyser $
+ * @version		$Id: class.assQuestion.php 61190 2015-10-22 13:44:38Z bheyser $
  * 
  * @ingroup		ModulesTestQuestionPool
  */
@@ -812,7 +812,7 @@ abstract class assQuestion
 					array_push($output, '<a href="' . $this->getSuggestedSolutionPathWeb() . $solution["value"]["name"] . '">' . $possible_texts[0] . '</a>');
 					break;
 				case "text":
-					array_push($output, $this->prepareTextareaOutput($solution["value"]));
+					array_push($output, $this->prepareTextareaOutput($solution["value"], true));
 					break;
 			}
 		}

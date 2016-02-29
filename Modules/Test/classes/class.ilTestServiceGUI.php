@@ -14,7 +14,7 @@ include_once 'Modules/Test/classes/class.ilTestService.php';
 *
 * @author	Helmut Schottmüller <helmut.schottmueller@mac.com>
 * @author	Björn Heyser <bheyser@databay.de>
-* @version	$Id: class.ilTestServiceGUI.php 60952 2015-10-02 08:44:13Z bheyser $
+* @version	$Id: class.ilTestServiceGUI.php 61510 2016-01-12 09:18:11Z bheyser $
 *
 * @ingroup ModulesTest
 */
@@ -583,6 +583,11 @@ class ilTestServiceGUI
 		{
 			$tableGUI->setQuestionRelatedObjectivesList($objectivesList);
 			$tableGUI->setObjectiveOrientedPresentationEnabled(true);
+			
+			if($targetGUI instanceof ilTestEvalObjectiveOrientedGUI)
+			{
+				$tableGUI->setMultipleObjectivesInvolved(false);
+			}
 		}
 
 		$tableGUI->setActiveId($active_id);

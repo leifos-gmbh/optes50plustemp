@@ -9,7 +9,7 @@ include_once "./Modules/Test/classes/inc.AssessmentConstants.php";
 * assQuestionImport is a basis class question imports
 *
 * @author		Helmut Schottmüller <helmut.schottmueller@mac.com>
-* @version	$Id: class.assQuestionImport.php 44245 2013-08-17 11:15:45Z mbecker $
+* @version	$Id: class.assQuestionImport.php 61190 2015-10-22 13:44:38Z bheyser $
 * @ingroup ModulesTestQuestionPool
 */
 class assQuestionImport
@@ -150,6 +150,34 @@ class assQuestionImport
 	{
 		include_once "./Modules/Test/classes/class.ilObjTest.php";
 		return ilObjTest::_getImportDirectory() . '/' . $_SESSION["tst_import_subdir"];
+	}
+	
+	protected function processNonAbstractedImageReferences($text, $sourceNic)
+	{
+		$reg = '/<img.*src=".*\\/mm_(\\d+)\\/(.*?)".*>/m';
+		$matches = null;
+		
+		if( preg_match_all($reg, $text, $matches) )
+		{
+			for($i = 0, $max = count($matches[1]); $i < $max; $i++)
+			{
+				$mobSrcId = $matches[1][$i];
+				$mobSrcName = $matches[2][$i];
+				$mobSrcLabel = 'il_'.$sourceNic.'_mob_'.$mobSrcId;
+
+				if (!is_array($_SESSION["import_mob_xhtml"]))
+				{
+					$_SESSION["import_mob_xhtml"] = array();
+				}
+
+				$_SESSION["import_mob_xhtml"][] = array(
+					"mob" => $mobSrcLabel, "uri" => 'objects/'.$mobSrcLabel.'/'.$mobSrcName
+				);
+			}
+		}
+
+		include_once "./Services/RTE/classes/class.ilRTE.php";
+		return ilRTE::_replaceMediaObjectImageSrc($text, 0, $sourceNic);
 	}
 	
 	/**

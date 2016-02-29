@@ -16,7 +16,7 @@ require_once './Modules/TestQuestionPool/classes/class.ilUserQuestionResult.php'
  * @author		Björn Heyser <bheyser@databay.de>
  * @author		Maximilian Becker <mbecker@databay.de>
  * 
- * @version		$Id: class.assClozeTest.php 61113 2015-10-16 13:38:50Z bheyser $
+ * @version		$Id: class.assClozeTest.php 61190 2015-10-22 13:44:38Z bheyser $
  * 
  * @ingroup 	ModulesTestQuestionPool
  */
@@ -338,7 +338,7 @@ class assClozeTest extends assQuestion implements ilObjQuestionScoringAdjustable
 								$this->getTextgapRating(),
 								$this->getIdenticalScoring(),
 								$this->getFixedTextLength() ? $this->getFixedTextLength() : NULL,
-								$this->getClozeText()
+								ilRTE::_replaceMediaObjectImageSrc($this->getClozeText(), 0)
 							)
 		);
 	}

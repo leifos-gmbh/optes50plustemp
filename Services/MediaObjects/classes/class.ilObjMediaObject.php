@@ -19,7 +19,7 @@ include_once "./Services/Object/classes/class.ilObject.php";
 * ILIAS Media Object
 *
 * @author Alex Killing <alex.killing@gmx.de>
-* @version $Id: class.ilObjMediaObject.php 61113 2015-10-16 13:38:50Z bheyser $
+* @version $Id: class.ilObjMediaObject.php 61190 2015-10-22 13:44:38Z bheyser $
 *
 * @ingroup ServicesMediaObjects
 */
@@ -453,7 +453,15 @@ class ilObjMediaObject extends ilObject
 			}
 		}
 
-		self::handleQuotaUpdate($this);		
+		self::handleQuotaUpdate($this);	
+
+		global $ilAppEventHandler;
+		$ilAppEventHandler->raise('Services/MediaObjects',
+		'create',
+		array('object' => $this,
+			'obj_type' => 'mob',
+			'obj_id' => $this->getId())
+		);	
 	}
 
 

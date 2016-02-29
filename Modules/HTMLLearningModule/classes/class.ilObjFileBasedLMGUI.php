@@ -8,7 +8,7 @@
 *
 * @author Alex Killing <alex.killing@gmx.de>
 *
-* $Id: class.ilObjFileBasedLMGUI.php 57199 2015-01-19 11:09:04Z jluetzen $
+* $Id: class.ilObjFileBasedLMGUI.php 61190 2015-10-22 13:44:38Z bheyser $
 *
 * @ilCtrl_Calls ilObjFileBasedLMGUI: ilFileSystemGUI, ilMDEditorGUI, ilPermissionGUI, ilLearningProgressGUI, ilInfoScreenGUI
 * @ilCtrl_Calls ilObjFileBasedLMGUI: ilShopPurchaseGUI, ilCommonActionDispatcherGUI
@@ -848,11 +848,17 @@ class ilObjFileBasedLMGUI extends ilObjectGUI
 			$ilTabs->addTab("id_list_files",
 				$lng->txt("cont_list_files"),
 				$this->ctrl->getLinkTargetByClass("ilfilesystemgui", "listFiles"));
-			
+		}
+
+		if($ilAccess->checkAccess('visible', '', $this->ref_id))
+		{
 			$ilTabs->addTab("id_info",
 				$lng->txt("info_short"),
 				$this->ctrl->getLinkTargetByClass(array("ilobjfilebasedlmgui", "ilinfoscreengui"), "showSummary"));
-			
+		}
+
+		if($ilAccess->checkAccess('write', '', $this->ref_id))
+		{
 			$ilTabs->addTab("id_settings",
 				$lng->txt("settings"),
 				$this->ctrl->getLinkTarget($this, "properties"));

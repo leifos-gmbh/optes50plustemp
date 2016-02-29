@@ -9,7 +9,7 @@ include_once "./Modules/TestQuestionPool/classes/export/qti12/class.assQuestionE
 * assClozeTestExport is a class for cloze question exports
 *
 * @author		Helmut Schottmüller <helmut.schottmueller@mac.com>
-* @version	$Id: class.assClozeTestExport.php 53487 2014-09-17 13:01:08Z gvollbach $
+* @version	$Id: class.assClozeTestExport.php 61190 2015-10-22 13:44:38Z bheyser $
 * @ingroup ModulesTestQuestionPool
 */
 class assClozeTestExport extends assQuestionExport
@@ -83,11 +83,6 @@ class assClozeTestExport extends assQuestionExport
 		$a_xml_writer->xmlEndTag("qtimetadatafield");
 
 		$a_xml_writer->xmlStartTag("qtimetadatafield");
-		$a_xml_writer->xmlElement("fieldlabel", NULL, "question");
-		$a_xml_writer->xmlElement("fieldentry", NULL, $this->object->getQuestion());
-		$a_xml_writer->xmlEndTag("qtimetadatafield");
-
-		$a_xml_writer->xmlStartTag("qtimetadatafield");
 		$a_xml_writer->xmlElement("fieldlabel", NULL, "combinations");
 		$a_xml_writer->xmlElement("fieldentry", NULL, base64_encode(json_encode($this->object->getGapCombinations())));
 		$a_xml_writer->xmlEndTag("qtimetadatafield");
@@ -103,27 +98,15 @@ class assClozeTestExport extends assQuestionExport
 		// add flow to presentation
 		$a_xml_writer->xmlStartTag("flow");
 		
-		if($this->object->getClozeText() == NULL)
-		{
-			$text_parts = preg_split("/\[gap.*?\[\/gap\]/", $this->object->getQuestion());
-		}	
-		else
-		{
-			$text_parts = preg_split("/\[gap.*?\[\/gap\]/", $this->object->getClozeText());	
-		}
+		$questionText = $this->object->getQuestion() ? $this->object->getQuestion() : '&nbsp;';
+		$this->object->addQTIMaterial($a_xml_writer, $questionText);
+		
+		$text_parts = preg_split("/\[gap.*?\[\/gap\]/", $this->object->getClozeText());
 		
 		// add material with question text to presentation
 		for ($i = 0; $i <= $this->object->getGapCount(); $i++)
 		{
-			// n-th text part
-			if ($i == 0)
-			{
-				$this->object->addQTIMaterial($a_xml_writer, $text_parts[$i]);
-			}
-			else
-			{
-				$this->object->addQTIMaterial($a_xml_writer, $text_parts[$i], TRUE, FALSE);
-			}
+			$this->object->addQTIMaterial($a_xml_writer, $text_parts[$i]);
 
 			if ($i < $this->object->getGapCount())
 			{

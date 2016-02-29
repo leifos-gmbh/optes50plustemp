@@ -11,7 +11,7 @@ require_once 'Modules/Test/interfaces/interface.ilEctsGradesEnabled.php';
  *
  * @author		Helmut Schottmüller <helmut.schottmueller@mac.com>
  * @author		Björn Heyser <bheyser@databay.de>
- * @version		$Id: class.ilObjTest.php 60998 2015-10-06 13:39:07Z bheyser $
+ * @version		$Id: class.ilObjTest.php 61190 2015-10-22 13:44:38Z bheyser $
  *
  * @defgroup ModulesTest Modules/Test
  * @extends ilObject
@@ -6217,7 +6217,7 @@ function getAnswerFeedbackPoints()
 			include_once "./Modules/TestQuestionPool/classes/class.ilObjQuestionPool.php";
 			foreach ($_SESSION["import_mob_xhtml"] as $mob)
 			{
-				$importfile = ilObjTest::_getImportDirectory() . '/' . $mob["uri"];
+				$importfile = ilObjTest::_getImportDirectory() . '/' . $_SESSION["tst_import_subdir"] . '/' . $mob["uri"];
 				if (file_exists($importfile))
 				{
 					$media_object =& ilObjMediaObject::_saveTempFileAsMediaObject(basename($importfile), $importfile, FALSE);

@@ -8,7 +8,7 @@ require_once "./Services/Container/classes/class.ilContainerGUI.php";
 * Class ilObjCourseGUI
 *
 * @author Stefan Meyer <smeyer.ilias@gmx.de> 
-* $Id: class.ilObjCourseGUI.php 60741 2015-09-17 08:53:32Z bheyser $
+* $Id: class.ilObjCourseGUI.php 61190 2015-10-22 13:44:38Z bheyser $
 *
 * @ilCtrl_Calls ilObjCourseGUI: ilCourseRegistrationGUI, ilShopPurchaseGUI, ilCourseObjectivesGUI
 * @ilCtrl_Calls ilObjCourseGUI: ilObjCourseGroupingGUI, ilMDEditorGUI, ilInfoScreenGUI, ilLearningProgressGUI, ilPermissionGUI
@@ -2951,10 +2951,6 @@ class ilObjCourseGUI extends ilContainerGUI
 		
 		$this->checkPermission('write');
 		
-		$this->setSubTabs('members');
-		$this->tabs_gui->setTabActive('members');
-		$this->tabs_gui->setSubTabActive('crs_member_administration');
-		
 		$participants = array_merge((array) $_POST['admins'],(array) $_POST['tutors'], (array) $_POST['members'], (array) $_POST['roles']);
 		
 		if(!$participants)
@@ -2990,7 +2986,10 @@ class ilObjCourseGUI extends ilContainerGUI
 				}
 			}
 		}
-		
+
+		$this->setSubTabs('members');
+		$this->tabs_gui->setTabActive('members');
+		$this->tabs_gui->setSubTabActive('crs_member_administration');
 		
 		include_once('./Services/Utilities/classes/class.ilConfirmationGUI.php');
 		$confirm = new ilConfirmationGUI();

@@ -16,7 +16,7 @@ include_once './Modules/Test/classes/inc.AssessmentConstants.php';
  * @author		Björn Heyser <bheyser@databay.de>
  * @author		Maximilian Becker <mbecker@databay.de>
  * 
- * @version	$Id: class.assImagemapQuestionGUI.php 60741 2015-09-17 08:53:32Z bheyser $
+ * @version	$Id: class.assImagemapQuestionGUI.php 61190 2015-10-22 13:44:38Z bheyser $
  * 
  * @ingroup ModulesTestQuestionPool
  */
@@ -621,7 +621,12 @@ class assImagemapQuestionGUI extends assQuestionGUI implements ilGuiQuestionScor
 	{
 		if( is_object($this->getPreviewSession()) )
 		{
-			$user_solution = array_values($this->getPreviewSession()->getParticipantsSolution());
+			$user_solution = array();
+			
+			if( is_array($this->getPreviewSession()->getParticipantsSolution()) )
+			{
+				$user_solution = array_values($this->getPreviewSession()->getParticipantsSolution());
+			}
 			
 			include_once "./Modules/TestQuestionPool/classes/class.ilImagemapPreview.php";
 			$preview = new ilImagemapPreview($this->object->getImagePath().$this->object->getImageFilename());

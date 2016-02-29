@@ -9,7 +9,7 @@
 * Base class to create PDF certificates using XML-FO XML transformations
 *
 * @author		Helmut Schottmüller <helmut.schottmueller@mac.com>
-* @version	$Id: class.ilCertificate.php 49930 2014-05-08 10:44:34Z bheyser $
+* @version	$Id: class.ilCertificate.php 61190 2015-10-22 13:44:38Z bheyser $
 * @ingroup Services
 */
 class ilCertificate
@@ -198,7 +198,7 @@ class ilCertificate
 	*
 	* @param $newObject The new certificate object
 	*/
-	public function cloneCertificate($newObject)
+	public function cloneCertificate(ilCertificate $newObject)
 	{
 		$xsl = $this->getXSLPath();
 		$bgimage = $this->getBackgroundImagePath();
@@ -216,6 +216,12 @@ class ilCertificate
 			@copy($xsl, $new_xsl);
 			if (@file_exists($bgimage)) @copy($bgimage, $new_bgimage);
 			if (@file_exists($bgimagethumb)) @copy($bgimagethumb, $new_bgimagethumb);
+		}
+		
+		// #10271
+		if($this->readActive())
+		{
+			$newObject->writeActive(true);
 		}
 	}
 

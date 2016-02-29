@@ -34,7 +34,7 @@ include_once "./Services/Xml/classes/class.ilXmlWriter.php";
 * of the xml document.
 *
 * @author Stefan Meyer <meyer@leifos.com>
-* @version $Id: class.ilCourseXMLWriter.php 53225 2014-09-10 11:43:24Z fwolf $
+* @version $Id: class.ilCourseXMLWriter.php 61190 2015-10-22 13:44:38Z bheyser $
 */
 class ilCourseXMLWriter extends ilXmlWriter
 {
@@ -137,7 +137,7 @@ class ilCourseXMLWriter extends ilXmlWriter
 	// PRIVATE
 	function __buildHeader()
 	{
-		$this->xmlSetDtdDef("<!DOCTYPE Course PUBLIC \"-//ILIAS//DTD Course//EN\" \"".ILIAS_HTTP_PATH."/xml/ilias_crs_4_5.dtd\">");
+		$this->xmlSetDtdDef("<!DOCTYPE Course PUBLIC \"-//ILIAS//DTD Course//EN\" \"".ILIAS_HTTP_PATH."/xml/ilias_crs_5_0.dtd\">");
 		$this->xmlSetGenCmt("Export of ILIAS course ". $this->course_obj->getId()." of installation ".$this->ilias->getSetting('inst_id').".");
 		$this->xmlHeader();
 

@@ -9,7 +9,7 @@ require_once './Modules/Test/classes/inc.AssessmentConstants.php';
  * @author		Helmut Schottmüller <helmut.schottmueller@mac.com>
  * @author		Maximilian Becker <mbecker@databay.de>
  *          
- * @version	$Id: class.assMarkSchema.php 56504 2014-12-17 10:21:06Z bheyser $
+ * @version	$Id: class.assMarkSchema.php 61190 2015-10-22 13:44:38Z bheyser $
  *          
  * @ingroup ModulesTest
  */
@@ -303,8 +303,10 @@ class ASS_MarkSchema
 	{
 		for ($i = count($this->mark_steps) - 1; $i >= 0; $i--) 
 		{
-			if ($percentage >= $this->mark_steps[$i]->getMinimumLevel()) 
-			{
+			$curMinLevel = $this->mark_steps[$i]->getMinimumLevel();
+
+			if( $percentage > $curMinLevel || (string)$percentage == (string)$curMinLevel )
+			{ // >= does NOT work since PHP is a fucking female float pig !!!!
 				return $this->mark_steps[$i];
 			}
 		}
