@@ -13,7 +13,7 @@ require_once './Modules/Test/classes/class.ilTestPlayerAbstractGUI.php';
  * @author		Björn Heyser <bheyser@databay.de>
  * @author		Maximilian Becker <mbecker@databay.de>
  *          
- * @version		$Id: class.ilTestOutputGUI.php 59695 2015-06-30 14:16:46Z bheyser $
+ * @version		$Id: class.ilTestOutputGUI.php 60198 2015-07-27 14:13:18Z bheyser $
  * 
  * @inGroup		ModulesTest
  */
@@ -519,7 +519,7 @@ abstract class ilTestOutputGUI extends ilTestPlayerAbstractGUI
 			$objectivesAdapter->buildQuestionRelatedObjectiveList($this->testSequence,$this->questionRelatedObjectivesList);
 			$this->questionRelatedObjectivesList->loadObjectivesTitles();
 			
-			$objectivesString = $this->questionRelatedObjectivesList->getQuestionRelatedObjectiveTitle($questionId);
+			$objectivesString = $this->questionRelatedObjectivesList->getQuestionRelatedObjectiveTitles($questionId);
 			$headerBlockBuilder->setQuestionRelatedObjectives($objectivesString);
 		}
 		$question_gui->setQuestionHeaderBlockBuilder($headerBlockBuilder);
