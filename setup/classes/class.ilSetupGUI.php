@@ -9,7 +9,7 @@ require_once "./setup/classes/class.ilSetup.php";
  * class to setup ILIAS first and maintain the ini-settings and the database
  *
  * @author   Sascha Hofmann <shofmann@databay.de>
- * @version  $Id: class.ilSetupGUI.php 60123 2015-07-23 12:04:43Z bheyser $
+ * @version  $Id: class.ilSetupGUI.php 60741 2015-09-17 08:53:32Z bheyser $
  */
 class ilSetupGUI
 {
@@ -59,7 +59,7 @@ class ilSetupGUI
 		ilUIFramework::init($this->tpl);
 
 		// CVS - REVISION - DO NOT MODIFY
-		$this->revision = '$Revision: 60123 $';
+		$this->revision = '$Revision: 60741 $';
 		$this->version = "2 ".substr(substr($this->revision,1),0,-2);
 		$this->lang = $this->lng->lang_key;
 
@@ -900,6 +900,10 @@ echo "<br>+".$client_id;
 
 		$preliminaries = array("php", "root", "folder_create",
 			"cookies_enabled", "dom", "xsl", "gd", "memory");
+		if ($this->setup->hasOpCacheEnabled()) {
+			$preliminaries[] = 'load_comments';
+		}
+
 		foreach ($preliminaries as $preliminary)
 		{
 			$this->tpl->setCurrentBlock("preliminary");

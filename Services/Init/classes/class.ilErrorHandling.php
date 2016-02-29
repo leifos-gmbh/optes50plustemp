@@ -9,7 +9,7 @@ require_once 'Services/Environment/classes/class.ilRuntime.php';
 *
 * @author	Stefan Meyer <meyer@leifos.com>
 * @author	Sascha Hofmann <shofmann@databay.de>
-* @version	$Id: class.ilErrorHandling.php 53437 2014-09-16 13:18:15Z mjansen $
+* @version	$Id: class.ilErrorHandling.php 60741 2015-09-17 08:53:32Z bheyser $
 * @extends PEAR
 * @todo		when an error occured and clicking the back button to return to previous page the referer-var in session is deleted -> server error
 */
@@ -281,6 +281,12 @@ class ilErrorHandling extends PEAR
 	 */
 	public function handleRuntimeErrors($a_error_code, $a_error_message, $a_error_file, $a_error_line)
 	{
+		// #15641 - the silence operator should suppress the error completely
+		if(error_reporting() === 0)
+		{
+			return;
+		}
+		
 		$backtrace_array = $this->formatBacktraceArray(debug_backtrace());
 		$error_code      = $this->translateErrorCode($a_error_code);
 

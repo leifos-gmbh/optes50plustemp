@@ -6,7 +6,7 @@
 * Tabs GUI
 *
 * @author Alex Killing <alex.killing@gmx.de>
-* @version $Id: class.ilTabsGUI.php 54640 2014-10-28 20:46:07Z akill $
+* @version $Id: class.ilTabsGUI.php 60741 2015-09-17 08:53:32Z bheyser $
 *
 */
 class ilTabsGUI
@@ -215,7 +215,7 @@ class ilTabsGUI
 		{
 			$ilHelp->setScreenIdComponent("");
 		}
-		
+
 		$this->target = array();
 		$this->sub_target = array();
 		$this->non_tabbed_link = array();

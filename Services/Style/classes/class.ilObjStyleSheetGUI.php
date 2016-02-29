@@ -6,7 +6,7 @@
 * Class ilObjStyleSheetGUI
 *
 * @author Alex Killing <alex.killing@gmx.de>
-* $Id: class.ilObjStyleSheetGUI.php 56504 2014-12-17 10:21:06Z bheyser $
+* $Id: class.ilObjStyleSheetGUI.php 60741 2015-09-17 08:53:32Z bheyser $
 *
 * @ilCtrl_Calls ilObjStyleSheetGUI:
 *
@@ -476,6 +476,7 @@ class ilObjStyleSheetGUI extends ilObjectGUI
 		}
 
 		// write custom parameter
+		$this->object->deleteCustomStylePars($cur_tag, $cur_class, $_GET["style_type"], (int) $_GET["mq_id"]);
 		if (is_array($_POST["custom_par"]))
 		{
 			foreach ($_POST["custom_par"] as $cpar)

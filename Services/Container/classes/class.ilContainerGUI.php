@@ -12,7 +12,7 @@ include_once './Services/PersonalDesktop/interfaces/interface.ilDesktopItemHandl
 * root folder, course, group, category, folder
 *
 * @author Alex Killing <alex.killing@gmx.de>
-* @version $Id: class.ilContainerGUI.php 57074 2015-01-13 13:38:45Z jluetzen $
+* @version $Id: class.ilContainerGUI.php 60741 2015-09-17 08:53:32Z bheyser $
 *
 * @extends ilObjectGUI
 */
@@ -172,7 +172,7 @@ class ilContainerGUI extends ilObjectGUI implements ilDesktopItemHandling
 
 		$cmd = $ilCtrl->getCmd();
 
-		if (in_array($cmd, array("displayMediaFullscreen", "downloadFile")))
+		if (in_array($cmd, array("displayMediaFullscreen", "downloadFile", "displayMedia")))
 		{
 			$this->checkPermission("read");
 		}

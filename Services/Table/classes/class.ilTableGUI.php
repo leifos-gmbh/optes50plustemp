@@ -11,7 +11,7 @@
 * HTML table component
 *
 * @author	Sascha Hofmann <shofmann@databay.de>
-* @version	$Id: class.ilTableGUI.php 56831 2015-01-07 11:22:27Z smeyer $
+* @version	$Id: class.ilTableGUI.php 60741 2015-09-17 08:53:32Z bheyser $
 *
 * @ingroup ServicesTable
 */
@@ -378,7 +378,7 @@ class ilTableGUI
 	*/
 	function setOrderDirection($a_order_direction)
 	{
-		if ($a_order_direction == "desc")
+		if (strtolower($a_order_direction) == "desc")
 		{
 			$this->order_direction = "desc";
 			$this->sort_order = "asc";

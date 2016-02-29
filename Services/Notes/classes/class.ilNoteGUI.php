@@ -11,7 +11,7 @@ include_once ("Services/Notes/classes/class.ilNote.php");
 * (and their lists) of an object.
 *
 * @author	Alex Killing <alex.killing@gmx.de>
-* @version	$Id: class.ilNoteGUI.php 56831 2015-01-07 11:22:27Z smeyer $
+* @version	$Id: class.ilNoteGUI.php 60741 2015-09-17 08:53:32Z bheyser $
 *
 * @ingroup ServicesNotes
 */
@@ -285,9 +285,9 @@ if ($this->private_enabled && $this->public_enabled
 			$nodes_col = true;
 		}
 		
-		// :TODO: public enabled vs. comments_settings needs to be discussed - see poll!
+		// #15948 - public enabled vs. comments_settings
 		$comments_col = false; 
-		if (($this->public_enabled || !$this->comments_settings) && (!$this->delete_note || $this->public_deletion_enabled || $ilSetting->get("comments_del_user", 0))
+		if ($this->public_enabled && (!$this->delete_note || $this->public_deletion_enabled || $ilSetting->get("comments_del_user", 0))
 			&& !$hide_comments /* && $ilUser->getId() != ANONYMOUS_USER_ID */)
 		{
 			$ntpl->setVariable("COMMENTS", $this->getNoteListHTML(IL_NOTE_PUBLIC, $a_init_form));

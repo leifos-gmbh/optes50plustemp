@@ -10,7 +10,7 @@ require_once("./Services/MediaObjects/classes/class.ilObjMediaObjectGUI.php");
  * Some gui methods to handle internal links
  *
  * @author Alex Killing <alex.killing@gmx.de>
- * @version $Id: class.ilInternalLinkGUI.php 57074 2015-01-13 13:38:45Z jluetzen $
+ * @version $Id: class.ilInternalLinkGUI.php 60741 2015-09-17 08:53:32Z bheyser $
  *
  * @ingroup ServicesLink
  */
@@ -1099,11 +1099,14 @@ class ilInternalLinkGUI
 		include_once("./Services/UIComponent/Explorer2/classes/class.ilExplorerBaseGUI.php");
 		ilExplorerBaseGUI::init();
 
+		include_once("./Services/YUI/classes/class.ilYuiUtil.php");
+		ilYuiUtil::initConnection();
+
 		$tpl->addJavascript("./Services/Link/js/ilIntLink.js");
 
 		include_once("./Services/UIComponent/Modal/classes/class.ilModalGUI.php");
 		$modal = ilModalGUI::getInstance();
-		$modal->setHeading($lng->txt("link_edit_int_link"));
+		$modal->setHeading($lng->txt("link_link"));
 		$modal->setId("ilIntLinkModal");
 		$modal->setBody("<div id='ilIntLinkModalContent'></div>");
 

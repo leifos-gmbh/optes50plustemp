@@ -8,7 +8,7 @@ include_once './Services/Tracking/classes/class.ilLearningProgressBaseGUI.php';
 *
 * @author Stefan Meyer <meyer@leifos.com>
 *
-* @version $Id: class.ilLearningProgressGUI.php 57749 2015-02-03 06:36:22Z bheyser $
+* @version $Id: class.ilLearningProgressGUI.php 60741 2015-09-17 08:53:32Z bheyser $
 *
 * @ilCtrl_Calls ilLearningProgressGUI: ilLPListOfObjectsGUI, ilLPListOfSettingsGUI, ilLPListOfProgressGUI
 * @ilCtrl_Calls ilLearningProgressGUI: ilLPObjectStatisticsGUI
@@ -26,7 +26,7 @@ class ilLearningProgressGUI extends ilLearningProgressBaseGUI
 	*/
 	function &executeCommand()
 	{
-		global $ilBench, $ilHelp;
+		global $ilBench, $ilHelp, $ilAccess;
 		
 		$ilBench->start('LearningProgress','0000_Start');
 
@@ -49,6 +49,12 @@ class ilLearningProgressGUI extends ilLearningProgressBaseGUI
 				break;
 
 			case 'illplistofobjectsgui':
+				if($this->getRefId() &&
+					!$ilAccess->checkAccess('read_learning_progress', '', $this->getRefId()))
+				{
+					return;
+				}
+				
 				include_once 'Services/Tracking/classes/repository_statistics/class.ilLPListOfObjectsGUI.php';
 				if(stristr($this->ctrl->getCmd(), "matrix"))
 				{
@@ -68,6 +74,12 @@ class ilLearningProgressGUI extends ilLearningProgressBaseGUI
 				break;
 
 			case 'illplistofsettingsgui':
+				if($this->getRefId() &&
+					!$ilAccess->checkAccess('edit_learning_progress', '', $this->getRefId()))
+				{
+					return;
+				}
+				
 				include_once 'Services/Tracking/classes/repository_statistics/class.ilLPListOfSettingsGUI.php';
 
 				$this->__setSubTabs(self::LP_ACTIVE_SETTINGS);
@@ -399,6 +411,12 @@ class ilLearningProgressGUI extends ilLearningProgressBaseGUI
 		
 		foreach($coll_items as $item_id)
 		{
+			// #16599 - deleted items should not be displayed
+			if(!array_key_exists($item_id, $possible_items))
+			{
+				continue;
+			}
+			
 			$field = new ilCustomInputGUI($possible_items[$item_id]["title"]);
 			
 			// lp status

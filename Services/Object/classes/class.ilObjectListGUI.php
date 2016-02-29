@@ -17,7 +17,7 @@ define ("IL_LIST_FULL", "full");
 * generally refuses them.
 *
 * @author Alex Killing <alex.killing@gmx.de>
-* $Id: class.ilObjectListGUI.php 57620 2015-01-28 14:30:43Z bheyser $
+* $Id: class.ilObjectListGUI.php 60741 2015-09-17 08:53:32Z bheyser $
 *
 */
 class ilObjectListGUI
@@ -1681,9 +1681,12 @@ class ilObjectListGUI
 				return true;
 			}
 		}
-		
+
+		// see bug #16519
+		$d = $this->getDescription();
+		$d = strip_tags($d, "<b>");
 		$this->tpl->setCurrentBlock("item_description");
-		$this->tpl->setVariable("TXT_DESC", $this->getDescription());
+		$this->tpl->setVariable("TXT_DESC", $d);
 		$this->tpl->parseCurrentBlock();
 	}
 	

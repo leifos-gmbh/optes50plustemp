@@ -8,7 +8,7 @@
 * Class ilInfoScreenGUI
 *
 * @author Alex Killing <alex.killing@gmx.de>
-* @version $Id: class.ilInfoScreenGUI.php 57074 2015-01-13 13:38:45Z jluetzen $
+* @version $Id: class.ilInfoScreenGUI.php 60741 2015-09-17 08:53:32Z bheyser $
 *
 * @ilCtrl_Calls ilInfoScreenGUI: ilNoteGUI, ilColumnGUI, ilPublicUserProfileGUI
 * @ilCtrl_Calls ilInfoScreenGUI: ilCommonActionDispatcherGUI
@@ -517,7 +517,13 @@ class ilInfoScreenGUI
 		if ($ilUser->getId() != ANONYMOUS_USER_ID and $a_obj->getOwner())
 		{
 			include_once './Services/Object/classes/class.ilObjectFactory.php';
-			if(!$ownerObj = ilObjectFactory::getInstanceByObjId($a_obj->getOwner(),false))
+			include_once './Services/User/classes/class.ilObjUser.php';
+			
+			if(ilObjUser::userExists(array($a_obj->getOwner())))
+			{
+				$ownerObj = ilObjectFactory::getInstanceByObjId($a_obj->getOwner(),false);
+			}
+			else
 			{
 				$ownerObj = ilObjectFactory::getInstanceByObjId(6, false);	
 			}

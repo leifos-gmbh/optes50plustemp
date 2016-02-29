@@ -10,7 +10,7 @@
 *
 * @author Sascha Hofmann <saschahofmann@gmx.de>
 * @author Alex Killing <alex.killing@gmx.de>
-* @version $Id: class.ilUtil.php 57620 2015-01-28 14:30:43Z bheyser $
+* @version $Id: class.ilUtil.php 60741 2015-09-17 08:53:32Z bheyser $
 *
 * @ingroup	ServicesUtilities
 */
@@ -4378,6 +4378,33 @@ class ilUtil
 		}
 		return $ref_ids ? $ref_ids : array();
 	}
+
+
+	/**
+	 * Include Mathjax
+	 *
+	 * @param
+	 * @return
+	 */
+	function includeMathjax($a_tpl = null)
+	{
+		global $tpl;
+
+		if ($a_tpl == null)
+		{
+			$a_tpl = $tpl;
+		}
+
+		// - take care of html exports (-> see buildLatexImages)
+		include_once "./Services/Administration/classes/class.ilSetting.php";
+		$mathJaxSetting = new ilSetting("MathJax");
+		$use_mathjax = $mathJaxSetting->get("enable");
+		if ($use_mathjax)
+		{
+			$a_tpl->addJavaScript($mathJaxSetting->get("path_to_mathjax"));
+		}
+	}
+
 
 	/**
 	* replace [text]...[/tex] tags with formula image code

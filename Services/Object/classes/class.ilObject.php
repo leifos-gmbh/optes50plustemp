@@ -8,7 +8,7 @@
 *
 * @author Stefan Meyer <smeyer.ilias@gmx.de>
 * @author Alex Killing <alex.killing@gmx.de>
-* @version $Id: class.ilObject.php 56831 2015-01-07 11:22:27Z smeyer $
+* @version $Id: class.ilObject.php 60741 2015-09-17 08:53:32Z bheyser $
 */
 class ilObject
 {
@@ -1958,7 +1958,7 @@ class ilObject
 	 * @param
 	 * @return
 	 */
-	static final function collectDeletionDependencies(&$deps, $a_ref_id, $a_obj_id, $a_type, $a_depth = 0)
+	static function collectDeletionDependencies(&$deps, $a_ref_id, $a_obj_id, $a_type, $a_depth = 0)
 	{
 		global $objDefinition, $tree;
 

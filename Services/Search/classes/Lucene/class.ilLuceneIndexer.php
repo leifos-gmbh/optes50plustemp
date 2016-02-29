@@ -8,7 +8,7 @@ include_once "Services/Cron/classes/class.ilCronJob.php";
 * This indexer is called by cron.php
 *
 * @author Stefan Meyer <smeyer.ilias@gmx.de>
-* @version $Id: class.ilLuceneIndexer.php 47077 2014-01-08 14:46:43Z smeyer $
+* @version $Id: class.ilLuceneIndexer.php 60741 2015-09-17 08:53:32Z bheyser $
 *
 * @package ServicesSearch
 */
@@ -80,8 +80,9 @@ class ilLuceneIndexer extends ilCronJob
 		$result = new ilCronJobResult();
 		if($error_message)
 		{
+			// #16035 - currently no way to discern the severity of the exception
 			$result->setMessage($error_message);
-			$status = ilCronJobResult::STATUS_CRASHED;
+			$status = ilCronJobResult::STATUS_FAIL;
 		}
 		else
 		{

@@ -8,7 +8,7 @@ include_once './webservice/soap/classes/class.ilSoapAdministration.php';
  * This class handles all DB changes necessary for fraunhofer
  *
  * @author Stefan Meyer <smeyer.ilias@gmx.de>
- * @version $Id: class.ilSoapLearningProgressAdministration.php 44391 2013-08-22 19:07:17Z akill $
+ * @version $Id: class.ilSoapLearningProgressAdministration.php 60741 2015-09-17 08:53:32Z bheyser $
  *
  */
 class ilSoapLearningProgressAdministration extends ilSoapAdministration
@@ -97,7 +97,7 @@ class ilSoapLearningProgressAdministration extends ilSoapAdministration
 		// Delete tracking data
 		foreach($valid_refs as $ref_id)
 		{
-			include_once './classes/class.ilObjectFactory.php';
+			include_once './Services/Object/classes/class.ilObjectFactory.php';
 			$obj = ilObjectFactory::getInstanceByRefId($ref_id, false);
 			
 			if(!$obj instanceof ilObject)
@@ -136,7 +136,8 @@ class ilSoapLearningProgressAdministration extends ilSoapAdministration
 			
 			// Refresh status
 			include_once './Services/Tracking/classes/class.ilLPStatusWrapper.php';
-			ilLPStatusWrapper::_refreshStatus($obj->getId());
+			ilLPStatusWrapper::_resetInfoCaches($obj->getId());
+			ilLPStatusWrapper::_refreshStatus($obj->getId(), $valid_users);
 			
 		}
 		return true;

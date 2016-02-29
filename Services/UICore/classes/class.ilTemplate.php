@@ -6,7 +6,7 @@
 * special template class to simplify handling of ITX/PEAR
 * @author	Stefan Kesseler <skesseler@databay.de>
 * @author	Sascha Hofmann <shofmann@databay.de>
-* @version	$Id: class.ilTemplate.php 57749 2015-02-03 06:36:22Z bheyser $
+* @version	$Id: class.ilTemplate.php 60741 2015-09-17 08:53:32Z bheyser $
 */
 class ilTemplate extends ilTemplateX
 {
@@ -689,7 +689,7 @@ class ilTemplate extends ilTemplateX
 	function fillJavaScriptFiles($a_force = false)
 	{
 		global $ilias, $ilTabs, $ilSetting, $ilUser;
-		
+
 		if (is_object($ilSetting))		// maybe this one can be removed
 		{
 			$vers = "vers=".str_replace(array(".", " "), "-", $ilSetting->get("ilias_version"));
@@ -2178,7 +2178,9 @@ class ilTemplate extends ilTemplateX
 		}
 
 		// ensure jquery files being loaded first
-		if (is_int(strpos($a_js_file, "Services/jQuery")))
+		if (is_int(strpos($a_js_file, "Services/jQuery")) ||
+			is_int(strpos($a_js_file, "/jquery.js")) ||
+			is_int(strpos($a_js_file, "/jquery-min.js")))
 		{
 			$a_batch = 0;
 		}

@@ -27,7 +27,7 @@
 * Wrapper for mathematical operations
 *
 * @author Helmut Schottmüller <helmut.schottmueller@mac.com>
-* $Id: class.ilMath.php 53764 2014-09-24 08:04:48Z bheyser $
+* $Id: class.ilMath.php 60741 2015-09-17 08:53:32Z bheyser $
 */
 class ilMath
 {
@@ -165,13 +165,6 @@ class ilMath
 			}
 		}
 		
-		// pow does calculate with a scale of 14,
-		// so rounding should not consider larger scale
-		if( $scale > 14 )
-		{
-			$scale = 14;
-		}
-
 		$res = pow($left_operand, $right_operand);
 		if (is_numeric($scale)) $res = round($res, $scale);
 		return $res;
@@ -287,6 +280,16 @@ class ilMath
 		{
 			return $a;
 		}
+	}
+
+	public static function _round($value, $precision = 0)
+	{
+		return number_format($value, $precision, '.', '');
+	}
+	
+	public static function _equals($value1, $value2, $scale)
+	{
+		return self::_comp($value1, $value2, $scale) === 0;
 	}
 
 	/**

@@ -12,7 +12,7 @@ require_once ("./Services/Table/classes/class.ilTableGUI.php");
  * Their methods are called in this User Interface class.
  * @author       Alex Killing <alex.killing@gmx.de>
  * @author       Manfred Thaler <manfred.thaler@endo7.com>
- * @version      $Id: class.ilBookmarkAdministrationGUI.php 56831 2015-01-07 11:22:27Z smeyer $
+ * @version      $Id: class.ilBookmarkAdministrationGUI.php 60741 2015-09-17 08:53:32Z bheyser $
  * @ingroup      ServicesBookmarks
  * @ilCtrl_Calls ilBookmarkAdministrationGUI:
  */
@@ -464,6 +464,7 @@ class ilBookmarkAdministrationGUI
 
 		include_once 'Services/Form/classes/class.ilPropertyFormGUI.php';
 		$form = new ilPropertyFormGUI();
+		$form->setFormAction($ilCtrl->getFormAction($this, "importFile")); // #16133
 		$form->setTopAnchor("bookmark_top");
 		$form->setTitle($lng->txt("bkm_import"));
 

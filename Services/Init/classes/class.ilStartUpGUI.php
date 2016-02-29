@@ -7,7 +7,7 @@ require_once 'Services/TermsOfService/classes/class.ilTermsOfServiceHelper.php';
 * StartUp GUI class. Handles Login and Registration.
 *
 * @author	Alex Killing <alex.killing@gmx.de>
-* @version	$Id: class.ilStartUpGUI.php 56831 2015-01-07 11:22:27Z smeyer $
+* @version	$Id: class.ilStartUpGUI.php 60741 2015-09-17 08:53:32Z bheyser $
 * @ilCtrl_Calls ilStartUpGUI: ilAccountRegistrationGUI, ilPasswordAssistanceGUI, ilLoginPageGUI
 *
 * @ingroup ServicesInit
@@ -265,7 +265,7 @@ class ilStartUpGUI
 
 				case AUTH_USER_TIME_LIMIT_EXCEEDED:
 					ilSession::setClosingContext(ilSession::SESSION_CLOSE_TIME);
-					$username = $ilAuth->getUsername();
+					$username = $ilAuth->getExceededUserName(); // #16327
 					$ilAuth->logout();
 
 					// user could reactivate by code?

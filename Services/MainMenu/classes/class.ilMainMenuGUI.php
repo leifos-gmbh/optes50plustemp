@@ -8,7 +8,7 @@ include_once 'Services/Mail/classes/class.ilMailGlobalServices.php';
 * Handles display of the main menu
 *
 * @author Alex Killing
-* @version $Id: class.ilMainMenuGUI.php 57139 2015-01-15 16:28:42Z bheyser $
+* @version $Id: class.ilMainMenuGUI.php 60741 2015-09-17 08:53:32Z bheyser $
 */
 class ilMainMenuGUI
 {
@@ -817,7 +817,14 @@ class ilMainMenuGUI
 	}
 	
 	function getHTML()
-	{		
+	{
+		// this is a workaround for bugs like 14016
+		// the main menu does not need the YUI connection, but many other
+		// features since they rely on il.Util.sendAjaxGetRequestToUrl (see Services/Javascript)
+		// which still uses YUI. This should be migrated to jQuery with a future major release
+		include_once "Services/YUI/classes/class.ilYuiUtil.php";
+		ilYUIUtil::initConnection();
+
 		$this->setTemplateVars();
 
 		return $this->tpl->get();

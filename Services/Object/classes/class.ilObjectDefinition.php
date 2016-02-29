@@ -7,7 +7,7 @@
 * it handles the xml-description of all ilias objects
 *
 * @author Alex Killing <alex.killing@gmx.de>
-* @version $Id: class.ilObjectDefinition.php 57749 2015-02-03 06:36:22Z bheyser $
+* @version $Id: class.ilObjectDefinition.php 60741 2015-09-17 08:53:32Z bheyser $
 *
 * @externalTableAccess ilObjDefReader on il_object_def, il_object_subobj, il_object_group 
 */
@@ -785,7 +785,7 @@ class ilObjectDefinition// extends ilSaxParser
 		{
 			return false;
 		}
-		return count($this->obj_data[$a_obj_name]['subobjects']) > 1 ? true : false;
+		return count($this->obj_data[$a_obj_name]['subobjects']) >= 1 ? true : false;
 	}
 
 // PRIVATE METHODS

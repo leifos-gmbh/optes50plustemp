@@ -9,7 +9,7 @@ include_once('./Services/Calendar/classes/class.ilDatePresentation.php');
 *
 * @author Stefan Meyer <meyer@leifos.com>
 * @author Sascha Hofmann <saschahofmann@gmx.de>
-* @version $Id: class.ilObjUserGUI.php 56831 2015-01-07 11:22:27Z smeyer $
+* @version $Id: class.ilObjUserGUI.php 60741 2015-09-17 08:53:32Z bheyser $
 *
 * @ilCtrl_Calls ilObjUserGUI: ilLearningProgressGUI, ilObjectOwnershipManagementGUI
 *
@@ -1183,7 +1183,7 @@ class ilObjUserGUI extends ilObjectGUI
 		{
 			$ext = new ilTextInputGUI($lng->txt("user_ext_account"), "ext_account");
 			$ext->setSize(40);
-			$ext->setMaxLength(50);
+			$ext->setMaxLength(250);
 			$ext->setInfo($lng->txt("user_ext_account_desc"));
 			$this->form_gui->addItem($ext);
 		}
@@ -2609,7 +2609,7 @@ class ilObjUserGUI extends ilObjectGUI
 					    $path .= $tmpPath[$i]["title"];
 				    }*/
 
-				    $path = $tmpPath[count($tmpPath)-2]["title"];
+				    $path = $tmpPath[count($tmpPath)-1]["title"];
 				}
 			}
 			else

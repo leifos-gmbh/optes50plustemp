@@ -5,7 +5,7 @@
 * @module       setup language file English
 * @modulegroup  language
 * @author       Matthias Kunkel <mkunkel@me.com>
-* @version      $Id: setup_en.lang 57074 2015-01-13 13:38:45Z jluetzen $
+* @version      $Id: setup_en.lang 60741 2015-09-17 08:53:32Z bheyser $
 */
 // The language file starts beyond the HTML-comment below. DO NOT modify this line!
 // To edit your language file with a spreadsheet (i.e. Excel or StarCalc) remove all lines
@@ -609,3 +609,5 @@ ps_auto_https_header_value#:#Header Value
 ps_auto_https#:#Autodetect HTTPS
 https_settings#:#HTTPS Settings
 alert#:#Warning
+pre_opcache_comments#:#Set opcache.load_comments to 1
+pre_load_comments#:#PHP-OPCache load_comments

@@ -11,7 +11,7 @@ require_once("./Services/COPage/classes/class.ilPageContent.php");
 * File List content object (see ILIAS DTD)
 *
 * @author Alex Killing <alex.killing@gmx.de>
-* @version $Id: class.ilPCFileList.php 45140 2013-10-01 11:11:38Z akill $
+* @version $Id: class.ilPCFileList.php 60741 2015-09-17 08:53:32Z bheyser $
 *
 * @ingroup ServicesCOPage
 */
@@ -349,12 +349,11 @@ class ilPCFileList extends ilPageContent
 		{
 			$id_arr = explode("_", $node->getAttribute("Entry"));
 			$file_id = $id_arr[count($id_arr) - 1];
-			if ($file_id > 0 && $id_arr[1] == "")
+			if ($file_id > 0 && ($id_arr[1] == "" || $id_arr[1] == IL_INST_ID || $id_arr[1] == 0))
 			{
 				$file_ids[$file_id] = $file_id;
 			}
 		}
-		
 		// file items in download links
 		$xpath = new DOMXPath($a_domdoc);
 		$nodes = $xpath->query("//IntLink[@Type='File']");	

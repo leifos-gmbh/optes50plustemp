@@ -8,7 +8,7 @@ include_once("Services/Block/classes/class.ilBlockGUI.php");
 * BlockGUI class for block NewsForContext
 *
 * @author Alex Killing <alex.killing@gmx.de>
-* @version $Id: class.ilNewsForContextBlockGUI.php 56831 2015-01-07 11:22:27Z smeyer $
+* @version $Id: class.ilNewsForContextBlockGUI.php 60741 2015-09-17 08:53:32Z bheyser $
 *
 * @ilCtrl_IsCalledBy ilNewsForContextBlockGUI: ilColumnGUI
 * @ilCtrl_Calls ilNewsForContextBlockGUI: ilNewsItemGUI
@@ -598,7 +598,7 @@ if (empty(self::$st_data))
 				include_once("./Services/MediaObjects/classes/class.ilMediaPlayerGUI.php");
 				$mob = new ilObjMediaObject($item["mob_id"]);
 				$med = $mob->getMediaItem("Standard");
-				$mpl = new ilMediaPlayerGUI();
+				$mpl = new ilMediaPlayerGUI("news_pl_".$item["mob_id"]);
 				if (strcasecmp("Reference", $med->getLocationType()) == 0)
 					$mpl->setFile($med->getLocation());
 				else
