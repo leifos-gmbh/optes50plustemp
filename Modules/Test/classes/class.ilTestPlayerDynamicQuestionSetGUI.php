@@ -14,7 +14,7 @@ require_once 'Modules/Test/classes/class.ilTestPlayerAbstractGUI.php';
  * 
  * @author		Helmut Schottmüller <helmut.schottmueller@mac.com>
  * @author		Björn Heyser <bheyser@databay.de>
- * @version		$Id: class.ilTestPlayerDynamicQuestionSetGUI.php 59801 2015-07-08 14:57:47Z bheyser $
+ * @version		$Id: class.ilTestPlayerDynamicQuestionSetGUI.php 60123 2015-07-23 12:04:43Z bheyser $
  * 
  * @package		Modules/Test
  *
@@ -149,7 +149,7 @@ class ilTestPlayerDynamicQuestionSetGUI extends ilTestPlayerAbstractGUI
 		
 		$this->handleUserSettings();
 		
-		if( $this->dynamicQuestionSetConfig->isTaxonomyFilterEnabled() )
+		if( $this->dynamicQuestionSetConfig->isAnyQuestionFilterEnabled() )
 		{
 			$this->ctrl->redirect($this, self::CMD_SHOW_QUESTION_SELECTION);
 		}
@@ -175,7 +175,7 @@ class ilTestPlayerDynamicQuestionSetGUI extends ilTestPlayerAbstractGUI
 		
 		$this->ctrl->saveParameter($this, 'tst_javascript');
 		
-		if( $this->dynamicQuestionSetConfig->isTaxonomyFilterEnabled() )
+		if( $this->dynamicQuestionSetConfig->isAnyQuestionFilterEnabled() )
 		{
 			$this->ctrl->redirect($this, self::CMD_SHOW_QUESTION_SELECTION);
 		}
@@ -741,7 +741,7 @@ class ilTestPlayerDynamicQuestionSetGUI extends ilTestPlayerAbstractGUI
 			$this->populateNextButtonsLeadingToQuestion();
 		}
 		
-		if( $this->dynamicQuestionSetConfig->isTaxonomyFilterEnabled() )
+		if( $this->dynamicQuestionSetConfig->isAnyQuestionFilterEnabled() )
 		{
 			$this->populateQuestionSelectionButtons();
 		}
@@ -845,7 +845,7 @@ class ilTestPlayerDynamicQuestionSetGUI extends ilTestPlayerAbstractGUI
 			$this->populateCancelButtonBlock();
 		}
 		
-		if( $this->dynamicQuestionSetConfig->isTaxonomyFilterEnabled() )
+		if( $this->dynamicQuestionSetConfig->isAnyQuestionFilterEnabled() )
 		{
 			$this->populateQuestionSelectionButtons();
 		}
@@ -1118,6 +1118,9 @@ class ilTestPlayerDynamicQuestionSetGUI extends ilTestPlayerAbstractGUI
 		$gui->setTaxIds(ilObjTaxonomy::getUsageOfObject(
 			$this->dynamicQuestionSetConfig->getSourceQuestionPoolId()
 		));
+
+		$gui->setTaxonomyFilterEnabled($this->dynamicQuestionSetConfig->isTaxonomyFilterEnabled());
+		$gui->setAnswerStatusFilterEnabled($this->dynamicQuestionSetConfig->isAnswerStatusFilterEnabled());
 
 		$gui->initFilter();
 		$gui->setFilterCommand('filterQuestionSelection');

@@ -13,7 +13,7 @@ require_once 'Modules/Test/classes/class.ilTestExpressPage.php';
 *
 * @author		Helmut Schottmüller <helmut.schottmueller@mac.com>
 * @author		Björn Heyser <bheyser@databay.de>
-* @version		$Id: class.assQuestionGUI.php 56504 2014-12-17 10:21:06Z bheyser $
+* @version		$Id: class.assQuestionGUI.php 60123 2015-07-23 12:04:43Z bheyser $
 * @ingroup		ModulesTestQuestionPool
 */
 abstract class assQuestionGUI
@@ -357,7 +357,11 @@ abstract class assQuestionGUI
 		}
 	}
 
-	function originalSyncForm($return_to = "")
+	/**
+	 * @param string $return_to
+	 * @param string $return_to_feedback  ilAssQuestionFeedbackEditingGUI
+	 */
+	function originalSyncForm($return_to = "", $return_to_feedback = '')
 	{
 		if (strlen($return_to))
 		{
@@ -366,6 +370,11 @@ abstract class assQuestionGUI
 		else if ($_REQUEST['return_to']) {
 			$this->ctrl->setParameter($this, "return_to", $_REQUEST['return_to']);
 		}
+		if(strlen($return_to_feedback))
+		{
+			$this->ctrl->setParameter($this, 'return_to_fb', 'true');
+		}	
+		
 		$template = new ilTemplate("tpl.il_as_qpl_sync_original.html",TRUE, TRUE, "Modules/TestQuestionPool");
 		$template->setVariable("BUTTON_YES", $this->lng->txt("yes"));
 		$template->setVariable("BUTTON_NO", $this->lng->txt("no"));
@@ -384,6 +393,10 @@ abstract class assQuestionGUI
 		if (strlen($_GET["return_to"]))
 		{
 			$this->ctrl->redirect($this, $_GET["return_to"]);
+		}
+		if (strlen($_REQUEST["return_to_fb"]))
+		{
+			$this->ctrl->redirectByClass('ilAssQuestionFeedbackEditingGUI', 'showFeedbackForm');
 		}
 		else
 		{
@@ -408,6 +421,10 @@ abstract class assQuestionGUI
 		if (strlen($_GET["return_to"]))
 		{
 			$this->ctrl->redirect($this, $_GET["return_to"]);
+		}
+		if(strlen($_REQUEST['return_to_fb']))
+		{
+			$this->ctrl->redirectByClass('ilAssQuestionFeedbackEditingGUI', 'showFeedbackForm');
 		}
 		else
 		{
@@ -1959,4 +1976,10 @@ abstract class assQuestionGUI
 		
 		return $form;
 	}
+
+	public function showHints()
+	{
+		global $ilCtrl;
+		$ilCtrl->redirectByClass('ilAssQuestionHintsGUI', ilAssQuestionHintsGUI::CMD_SHOW_LIST);
+	}	
 }

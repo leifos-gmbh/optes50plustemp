@@ -11,7 +11,7 @@ require_once 'Modules/Test/interfaces/interface.ilEctsGradesEnabled.php';
  *
  * @author		Helmut Schottmüller <helmut.schottmueller@mac.com>
  * @author		Björn Heyser <bheyser@databay.de>
- * @version		$Id: class.ilObjTest.php 59699 2015-06-30 14:28:18Z bheyser $
+ * @version		$Id: class.ilObjTest.php 60123 2015-07-23 12:04:43Z bheyser $
  *
  * @defgroup ModulesTest Modules/Test
  * @extends ilObject
@@ -6925,6 +6925,11 @@ function getAnswerFeedbackPoints()
 		require_once 'Modules/Test/classes/class.ilTestQuestionSetConfigFactory.php';
 		$testQuestionSetConfigFactory = new ilTestQuestionSetConfigFactory($tree, $ilDB, $ilPluginAdmin, $this);
 		$this->saveCompleteStatus($testQuestionSetConfigFactory->getQuestionSetConfig());
+		
+		if( $this->participantDataExist() )
+		{
+			$this->recalculateScores(true);
+		}
 	}
 
 	/**

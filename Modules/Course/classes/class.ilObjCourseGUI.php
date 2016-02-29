@@ -8,7 +8,7 @@ require_once "./Services/Container/classes/class.ilContainerGUI.php";
 * Class ilObjCourseGUI
 *
 * @author Stefan Meyer <smeyer.ilias@gmx.de> 
-* $Id: class.ilObjCourseGUI.php 57717 2015-02-01 18:41:34Z smeyer $
+* $Id: class.ilObjCourseGUI.php 60123 2015-07-23 12:04:43Z bheyser $
 *
 * @ilCtrl_Calls ilObjCourseGUI: ilCourseRegistrationGUI, ilShopPurchaseGUI, ilCourseObjectivesGUI
 * @ilCtrl_Calls ilObjCourseGUI: ilObjCourseGroupingGUI, ilMDEditorGUI, ilInfoScreenGUI, ilLearningProgressGUI, ilPermissionGUI
@@ -18,7 +18,7 @@ require_once "./Services/Container/classes/class.ilContainerGUI.php";
 * @ilCtrl_Calls ilObjCourseGUI: ilColumnGUI, ilContainerPageGUI
 * @ilCtrl_Calls ilObjCourseGUI: ilLicenseOverviewGUI, ilObjectCopyGUI, ilObjStyleSheetGUI
 * @ilCtrl_Calls ilObjCourseGUI: ilCourseParticipantsGroupsGUI, ilExportGUI, ilCommonActionDispatcherGUI
-* @ilCtrl_Calls ilObjCourseGUI: ilDidacticTemplateGUI, ilCertificateGUI, ilObjectServiceSettingsGUI
+* @ilCtrl_Calls ilObjCourseGUI: ilDidacticTemplateGUI, ilCertificatGUI, ilObjectServiceSettingsGUI
 * @ilCtrl_Calls ilObjCourseGUI: ilContainerStartObjectsGUI, ilContainerStartObjectsPageGUI
 * @ilCtrl_Calls ilObjCourseGUI: ilLOPageGUI
 *
@@ -4190,10 +4190,10 @@ class ilObjCourseGUI extends ilContainerGUI
 				break;
 
 			case 'ilcourseregistrationgui':
-				$this->ctrl->setReturn($this,'infoScreen');
+				$this->ctrl->setReturn($this,'');
 				$this->tabs_gui->setTabActive('join');
 				include_once('./Modules/Course/classes/class.ilCourseRegistrationGUI.php');
-				$registration = new ilCourseRegistrationGUI($this->object);
+				$registration = new ilCourseRegistrationGUI($this->object, $this);
 				$this->ctrl->forwardCommand($registration);
 				break;
 				

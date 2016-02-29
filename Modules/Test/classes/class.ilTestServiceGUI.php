@@ -14,7 +14,7 @@ include_once 'Modules/Test/classes/class.ilTestService.php';
 *
 * @author	Helmut Schottmüller <helmut.schottmueller@mac.com>
 * @author	Björn Heyser <bheyser@databay.de>
-* @version	$Id: class.ilTestServiceGUI.php 57978 2015-02-11 10:57:57Z bheyser $
+* @version	$Id: class.ilTestServiceGUI.php 60123 2015-07-23 12:04:43Z bheyser $
 *
 * @ingroup ModulesTest
 */
@@ -327,8 +327,17 @@ class ilTestServiceGUI
 								'tst_pass_delete',
 								$this->ctrl->getLinkTargetByClass($targetclass, 'confirmDeletePass')
 							);
+							$delete_entry = true;
 						}
-						$row['pass_details'] = $aslgui->getHTML();
+						
+						if($delete_entry == true)
+						{
+							$row['pass_details'] = $aslgui->getHTML();
+						}
+						else
+						{
+							$row['pass_details'] = '<a href="'.$this->ctrl->getLinkTargetByClass($targetclass, $targetcommand).'">'.$this->lng->txt('tst_pass_details').'</a>';
+						}
 					}
 				}
 

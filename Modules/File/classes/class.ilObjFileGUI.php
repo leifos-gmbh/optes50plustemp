@@ -10,7 +10,7 @@ require_once "./Modules/File/classes/class.ilObjFileAccess.php";
 *
 * @author Sascha Hofmann <shofmann@databay.de> 
 * @author Stefan Born <stefan.born@phzh.ch> 
-* @version $Id: class.ilObjFileGUI.php 56831 2015-01-07 11:22:27Z smeyer $
+* @version $Id: class.ilObjFileGUI.php 60123 2015-07-23 12:04:43Z bheyser $
 *
 * @ilCtrl_Calls ilObjFileGUI: ilMDEditorGUI, ilInfoScreenGUI, ilPermissionGUI, ilShopPurchaseGUI, ilObjectCopyGUI
 * @ilCtrl_Calls ilObjFileGUI: ilExportGUI, ilWorkspaceAccessGUI, ilPortfolioPageGUI, ilCommonActionDispatcherGUI
@@ -1175,6 +1175,23 @@ class ilObjFileGUI extends ilObject2GUI
 			}
 
 			ilUtil::delDir($newDir);
+			
+			// #15404
+			if($this->id_type != self::WORKSPACE_NODE_ID)
+			{
+				foreach(ilFileUtils::getNewObjects() as $parent_ref_id => $objects)
+				{
+					if($parent_ref_id != $this->parent_id)
+					{
+						continue;
+					}
+
+					foreach($objects as $object)
+					{
+						$this->after_creation_callback_objects[] = $object;
+					}
+				}	
+			}
 		}
 		else
 		{

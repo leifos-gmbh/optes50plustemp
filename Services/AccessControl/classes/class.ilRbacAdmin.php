@@ -11,7 +11,7 @@
 *  Required methods for the PR relation are grantPermission(), revokePermission()
 *
 * @author Stefan Meyer <meyer@leifos.com>
-* @version $Id: class.ilRbacAdmin.php 56504 2014-12-17 10:21:06Z bheyser $
+* @version $Id: class.ilRbacAdmin.php 60123 2015-07-23 12:04:43Z bheyser $
 *
 * @ingroup ServicesAccessControl
 */
@@ -195,7 +195,6 @@ class ilRbacAdmin
 		$limit_query = 'SELECT COUNT(*) num FROM rbac_ua '.
 				'WHERE '.$GLOBALS['ilDB']->in('rol_id',(array) $a_limited_roles,FALSE,'integer');
 		$res = $GLOBALS['ilDB']->query($limit_query);
-		$GLOBALS['ilLog']->write(__METHOD__.': '.$limit_query);
 		$row = $res->fetchRow(DB_FETCHMODE_OBJECT);
 		if($row->num >= $a_limit)
 		{
@@ -210,7 +209,7 @@ class ilRbacAdmin
 			$res = $ilDB->manipulate($query);
 		
 		$GLOBALS['ilDB']->unlockTables();
-		
+		$GLOBALS['rbacreview']->setAssignedCacheEntry($a_role_id,$a_usr_id,TRUE);
 		
 		$this->addDesktopItem($a_role_id,$a_usr_id);
 	

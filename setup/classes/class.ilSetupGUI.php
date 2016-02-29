@@ -9,7 +9,7 @@ require_once "./setup/classes/class.ilSetup.php";
  * class to setup ILIAS first and maintain the ini-settings and the database
  *
  * @author   Sascha Hofmann <shofmann@databay.de>
- * @version  $Id: class.ilSetupGUI.php 56773 2015-01-06 10:46:02Z smeyer $
+ * @version  $Id: class.ilSetupGUI.php 60123 2015-07-23 12:04:43Z bheyser $
  */
 class ilSetupGUI
 {
@@ -59,7 +59,7 @@ class ilSetupGUI
 		ilUIFramework::init($this->tpl);
 
 		// CVS - REVISION - DO NOT MODIFY
-		$this->revision = '$Revision: 56773 $';
+		$this->revision = '$Revision: 60123 $';
 		$this->version = "2 ".substr(substr($this->revision,1),0,-2);
 		$this->lang = $this->lng->lang_key;
 
@@ -540,7 +540,7 @@ echo "<br>+".$client_id;
 			$this->tpl->touchBlock("lng_empty_cell");
 		}
 
-		if ($this->cmd != "logout" and $this->setup->isInstalled())
+		if ($this->cmd != "logout" and $this->setup->isInstalled() and $this->setup->isAuthenticated())
 		{
 			// add client link
 			if ($this->setup->isAdmin())

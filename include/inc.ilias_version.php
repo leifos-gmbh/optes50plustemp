@@ -5,10 +5,10 @@
 * sets ilias version (this file shouldn't be merged between cvs branches)
 *
 * @author Alex Killing <alex.killing@gmx.de>
-* @version $Id: inc.ilias_version.php 56504 2014-12-17 10:21:06Z bheyser $
+* @version $Id: inc.ilias_version.php 60123 2015-07-23 12:04:43Z bheyser $
 *
 * @package ilias-core
 */
-define("ILIAS_VERSION", "5.0.0 Beta2  2014-11-07");
+define("ILIAS_VERSION", "5.0.0 2015-02-06");
 define("ILIAS_VERSION_NUMERIC", "5.0.0");			// must be always x.y.z: x, y and z are numbers
 ?>

@@ -7,7 +7,7 @@
  *
  * @author Stefan Meyer <meyer@leifos.com>
  *
- * @version $Id: class.ilLPStatus.php 57620 2015-01-28 14:30:43Z bheyser $
+ * @version $Id: class.ilLPStatus.php 60123 2015-07-23 12:04:43Z bheyser $
  *
  * @ingroup ServicesTracking
  *
@@ -780,12 +780,13 @@ class ilLPStatus
 				}
 			}
 			
-			// add not attempted for missing user entries
+			// process missing user entries (same as dirty entries, see above)
 			foreach($valid as $obj_id)
 			{
 				if(!isset($res[$obj_id]))
 				{
-					$res[$obj_id] = self::LP_STATUS_NOT_ATTEMPTED_NUM;
+					// $res[$obj_id] = self::LP_STATUS_NOT_ATTEMPTED_NUM;
+					$res[$obj_id] = self::_lookupStatus($obj_id, $ilUser->getId());
 				}
 			}
 

@@ -10,7 +10,7 @@ require_once './Services/Utilities/classes/class.ilFormat.php';
  * @author Helmut Schottmüller <helmut.schottmueller@mac.com>
  * @author Maximilian Becker <mbecker@databay.de>
  * 
- * @version $Id: class.ilTestExport.php 56504 2014-12-17 10:21:06Z bheyser $
+ * @version $Id: class.ilTestExport.php 60123 2015-07-23 12:04:43Z bheyser $
  *
  * @ingroup ModulesTest
  */
@@ -717,7 +717,7 @@ class ilTestExport
 						$pages++;
 					}
 				} else {
-					$resultsheet =& $workbook->addWorksheet($username);
+					$resultsheet =& $workbook->addWorksheet(utf8_decode($username));
 				}
 				if (method_exists($resultsheet, "writeString"))
 				{
