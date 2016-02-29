@@ -10,7 +10,7 @@
 *
 * @author Sascha Hofmann <saschahofmann@gmx.de>
 * @author Alex Killing <alex.killing@gmx.de>
-* @version $Id: class.ilUtil.php 60741 2015-09-17 08:53:32Z bheyser $
+* @version $Id: class.ilUtil.php 61113 2015-10-16 13:38:50Z bheyser $
 *
 * @ingroup	ServicesUtilities
 */
@@ -2056,7 +2056,7 @@ class ilUtil
 	* @static
 	* 
 	*/
-	public static function img($a_src, $a_alt = "", $a_width = "", $a_height = "", $a_border = 0, $a_id = "")
+	public static function img($a_src, $a_alt = "", $a_width = "", $a_height = "", $a_border = 0, $a_id = "", $a_class = "")
 	{
 		$img = '<img src="'.$a_src.'"';
 		if ($a_alt != "")
@@ -2070,6 +2070,10 @@ class ilUtil
 		if ($a_height != "")
 		{
 			$img.= ' height="'.$a_height.'"';
+		}
+		if ($a_class != "")
+		{
+			$img.= ' class="'.$a_class.'"';
 		}
 		if ($a_id != "")
 		{
@@ -3506,6 +3510,7 @@ class ilUtil
 		switch($a_desired_type)
 		{
 			case "jpg":
+			case "jpeg":
 			if ($im_types & IMG_JPG) return "jpg";
 			if ($im_types & IMG_GIF) return "gif";
 			if ($im_types & IMG_PNG) return "png";

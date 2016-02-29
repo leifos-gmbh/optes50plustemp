@@ -7,7 +7,7 @@ require_once 'Modules/TestQuestionPool/classes/class.ilAssQuestionPreviewGUI.php
 /**
 *
 * @author Helmut Schottmüller <ilias@aurealis.de>
-* @version $Id: class.ilQuestionBrowserTableGUI.php 56504 2014-12-17 10:21:06Z bheyser $
+* @version $Id: class.ilQuestionBrowserTableGUI.php 61113 2015-10-16 13:38:50Z bheyser $
 *
 * @ingroup ModulesTestQuestionPool
  * 
@@ -286,9 +286,12 @@ class ilQuestionBrowserTableGUI extends ilTable2GUI
 
 			if ($this->getEditable())
 			{
+				//$href = $this->ctrl->getLinkTargetByClass("ilAssQuestionPageGUI", "edit");
+				$href = $this->ctrl->getLinkTargetByClass($data['type_tag'].'GUI', 'editQuestion');
+				
 				$this->tpl->setCurrentBlock("edit_link");
 				$this->tpl->setVariable("TXT_EDIT", $this->lng->txt("edit"));
-				$this->tpl->setVariable("LINK_EDIT", $this->ctrl->getLinkTargetByClass("ilAssQuestionPageGUI", "edit"));
+				$this->tpl->setVariable("LINK_EDIT", $href);
 				$this->tpl->parseCurrentBlock();
 			}
 			if ($data["complete"] == 0)

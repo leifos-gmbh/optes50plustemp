@@ -15,7 +15,7 @@ require_once 'Modules/TestQuestionPool/classes/class.ilAssQuestionHintTracking.p
  * @author	Björn Heyser <bheyser@databay.de>
  * @author	Maximilian Becker <mbecker@databay.de>
  * 
- * @version		$Id: class.ilTestEvaluationGUI.php 60753 2015-09-17 14:07:42Z bheyser $
+ * @version		$Id: class.ilTestEvaluationGUI.php 61114 2015-10-16 13:39:15Z bheyser $
  * 
  * @ingroup ModulesTest
  *
@@ -1106,12 +1106,12 @@ class ilTestEvaluationGUI extends ilTestServiceGUI
 
 		if( !$this->object->getShowPassDetails() )
 		{
-			$executable = $this->object->isExecutable($testSession, $ilUser->getId());
+			#$executable = $this->object->isExecutable($testSession, $ilUser->getId());
 
-			if($executable["executable"])
-			{
+			#if($executable["executable"])
+			#{
 				$this->ctrl->redirectByClass("ilobjtestgui", "infoScreen");
-			}
+			#}
 		}
 
 		$active_id = $testSession->getActiveId();
@@ -1299,11 +1299,11 @@ class ilTestEvaluationGUI extends ilTestServiceGUI
 		$templatehead->setVariable('RESULTS_TOOLBAR', $this->ctrl->getHTML($toolbar));
 
 		$hide_details = !$this->object->getShowPassDetails();
-		if ($hide_details)
-		{
-			$executable = $this->object->isExecutable($testSession, $ilUser->getId());
-			if (!$executable["executable"]) $hide_details = FALSE;
-		}
+		#if ($hide_details)
+		#{
+		#	$executable = $this->object->isExecutable($testSession, $ilUser->getId());
+		#	if (!$executable["executable"]) $hide_details = FALSE;
+		#}
 
 		$template->setCurrentBlock("pass_overview");
 		$overview = $this->getPassOverview($testSession, "iltestevaluationgui", "outUserPassDetails", FALSE, $hide_details);

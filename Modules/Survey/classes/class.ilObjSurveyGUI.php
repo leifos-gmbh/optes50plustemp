@@ -7,7 +7,7 @@ include_once "./Services/Object/classes/class.ilObjectGUI.php";
 * Class ilObjSurveyGUI
 *
 * @author		Helmut Schottmüller <helmut.schottmueller@mac.com>
-* @version  $Id: class.ilObjSurveyGUI.php 60741 2015-09-17 08:53:32Z bheyser $
+* @version  $Id: class.ilObjSurveyGUI.php 60998 2015-10-06 13:39:07Z bheyser $
 *
 * @ilCtrl_Calls ilObjSurveyGUI: ilSurveyEvaluationGUI, ilSurveyExecutionGUI
 * @ilCtrl_Calls ilObjSurveyGUI: ilMDEditorGUI, ilPermissionGUI
@@ -89,8 +89,20 @@ class ilObjSurveyGUI extends ilObjectGUI
 		switch($next_class)
 		{
 			case "ilinfoscreengui":
-				$this->addHeaderAction();
-				$this->infoScreen();	// forwards command
+				if(!in_array($this->ctrl->getCmdClass(),
+					array('ilpublicuserprofilegui', 'ilobjportfoliogui')))
+				{		
+					$this->addHeaderAction();
+					$this->infoScreen(); // forwards command
+				}
+				else 
+				{
+					// #16891
+					$ilTabs->clearTargets();
+					include_once("./Services/InfoScreen/classes/class.ilInfoScreenGUI.php");
+					$info = new ilInfoScreenGUI($this);
+					$this->ctrl->forwardCommand($info);
+				}
 				break;
 			
 			case 'ilmdeditorgui':

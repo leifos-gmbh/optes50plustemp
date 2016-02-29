@@ -26,7 +26,7 @@ include_once('./Services/Table/classes/class.ilTable2GUI.php');
 /**
 *
 * @author Helmut Schottmüller <ilias@aurealis.de>
-* @version $Id: class.ilSurveyResultsCumulatedTableGUI.php 55745 2014-12-01 09:23:18Z bheyser $
+* @version $Id: class.ilSurveyResultsCumulatedTableGUI.php 60961 2015-10-02 12:25:22Z bheyser $
 *
 * @ingroup ModulesSurvey
 */
@@ -177,13 +177,13 @@ class ilSurveyResultsCumulatedTableGUI extends ilTable2GUI
 			if (strcmp($c, 'median') == 0)
 			{
 				$this->tpl->setCurrentBlock('median');
-				$this->tpl->setVariable("MEDIAN", is_numeric($data['median']) ? $data['median'] : $this->lng->txt("survey_not_available"));
+				$this->tpl->setVariable("MEDIAN", strlen($data['median']) ? $data['median'] : $this->lng->txt("survey_not_available"));
 				$this->tpl->parseCurrentBlock();
 			}
 			if (strcmp($c, 'arithmetic_mean') == 0)
 			{
 				$this->tpl->setCurrentBlock('arithmetic_mean');
-				$this->tpl->setVariable("ARITHMETIC_MEAN", is_numeric($data['arithmetic_mean']) ? $data['arithmetic_mean'] : $this->lng->txt("survey_not_available"));
+				$this->tpl->setVariable("ARITHMETIC_MEAN", strlen($data['arithmetic_mean']) ? $data['arithmetic_mean'] : $this->lng->txt("survey_not_available"));
 				$this->tpl->parseCurrentBlock();
 			}
 		}

@@ -29,7 +29,7 @@ include_once './Services/Membership/interfaces/interface.ilMembershipRegistratio
 * Class ilObjCourse
 *
 * @author Stefan Meyer <meyer@leifos.com> 
-* @version $Id: class.ilObjCourse.php 60741 2015-09-17 08:53:32Z bheyser $
+* @version $Id: class.ilObjCourse.php 60961 2015-10-02 12:25:22Z bheyser $
 * 
 */
 class ilObjCourse extends ilContainer implements ilMembershipRegistrationCodes
@@ -462,23 +462,26 @@ class ilObjCourse extends ilContainer implements ilMembershipRegistrationCodes
 		
 		// Results are stored in $this->items
 		parent::getSubItems($a_admin_panel_enabled,$a_include_side_block);
-	
-		// No sessions
-		if(!is_array($this->items['sess']) or !$this->items['sess'])
+			
+		$limit_sess = false;		
+		if(!$a_admin_panel_enabled &&
+			!$a_include_side_block &&
+			$this->items['sess'] &&
+			is_array($this->items['sess']) &&
+			$this->isSessionLimitEnabled() &&
+			$this->getViewMode() == ilContainer::VIEW_SESSIONS) // #16686
+		{
+			$limit_sess = true;
+		}
+		
+		if(!$limit_sess)
 		{
 			return $this->items[(int) $a_admin_panel_enabled][(int) $a_include_side_block];
 		}
-		// No session limit
-		if(!$this->isSessionLimitEnabled() or $a_admin_panel_enabled)
-		{
-			return $this->items[(int) $a_admin_panel_enabled][(int) $a_include_side_block];
-		}
+		
 
-		if($a_include_side_block)
-		{
-			return $this->items[(int) $a_admin_panel_enabled][(int) $a_include_side_block];
-		}
-
+		// do session limit
+		
 		// @todo move to gui class
 		if(isset($_GET['crs_prev_sess']))
 		{

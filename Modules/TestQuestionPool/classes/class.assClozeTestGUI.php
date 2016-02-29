@@ -15,7 +15,7 @@ require_once './Modules/TestQuestionPool/interfaces/interface.ilGuiAnswerScoring
  * @author		Björn Heyser <bheyser@databay.de>
  * @author		Maximilian Becker <mbecker@databay.de>
  * 
- * @version		$Id: class.assClozeTestGUI.php 60741 2015-09-17 08:53:32Z bheyser $
+ * @version		$Id: class.assClozeTestGUI.php 61113 2015-10-16 13:38:50Z bheyser $
  * 
  * @ingroup 	ModulesTestQuestionPool
  */
@@ -282,6 +282,7 @@ class assClozeTestGUI extends assQuestionGUI implements ilGuiQuestionScoringAdju
 	{
 		// title
 		$title = new ilTextInputGUI($this->lng->txt("title"), "title");
+		$title->setMaxLength(100);
 		$title->setValue($this->object->getTitle());
 		$title->setRequired(TRUE);
 		$form->addItem($title);
@@ -417,7 +418,6 @@ class assClozeTestGUI extends assQuestionGUI implements ilGuiQuestionScoringAdju
 		}
 		else
 		{
-			$cloze_text->setUseRte(TRUE);
 			$cloze_text->setRteTags(self::getSelfAssessmentTags());
 			$cloze_text->setUseTagsForRteOnly(false);
 		}
@@ -1420,17 +1420,14 @@ class assClozeTestGUI extends assQuestionGUI implements ilGuiQuestionScoringAdju
 		{
 			return '';
 		}
-		
+
+		global $lng;
+
 		$feedback = '<table class="test_specific_feedback"><tbody>';
 
 		foreach ($this->object->gaps as $index => $answer)
 		{
-			$caption = $ordinal = $index+1 .': ';
-			foreach ($answer->items as $item)
-			{
-				$caption .= '"' . $item->getAnswertext().'" / ';
-			}
-			$caption = substr($caption, 0, strlen($caption)-3);
+			$caption = $lng->txt('gap').' '.($index+1) .': ';
 
 			$feedback .= '<tr><td>';
 

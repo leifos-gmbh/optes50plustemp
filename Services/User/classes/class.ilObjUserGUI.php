@@ -9,7 +9,7 @@ include_once('./Services/Calendar/classes/class.ilDatePresentation.php');
 *
 * @author Stefan Meyer <meyer@leifos.com>
 * @author Sascha Hofmann <saschahofmann@gmx.de>
-* @version $Id: class.ilObjUserGUI.php 60741 2015-09-17 08:53:32Z bheyser $
+* @version $Id: class.ilObjUserGUI.php 60961 2015-10-02 12:25:22Z bheyser $
 *
 * @ilCtrl_Calls ilObjUserGUI: ilLearningProgressGUI, ilObjectOwnershipManagementGUI
 *
@@ -362,12 +362,12 @@ class ilObjUserGUI extends ilObjectGUI
 	*/
 	function saveObject()
 	{
-        global $ilAccess, $ilSetting, $tpl, $ilUser, $rbacadmin;
+        global $ilAccess, $ilSetting, $tpl, $ilUser, $rbacadmin, $rbacsystem;
 
         include_once('./Services/Authentication/classes/class.ilAuthUtils.php');
 
 		// User folder
-		if (!$ilAccess->checkAccess('create_usr', "", $this->usrf_ref_id) &&
+		if (!$rbacsystem->checkAccess('create_usr', $this->usrf_ref_id) &&
 			!$ilAccess->checkAccess('cat_administrate_users', "", $this->usrf_ref_id))
 		{
 			$this->ilias->raiseError($this->lng->txt("permission_denied"),$this->ilias->error_obj->MESSAGE);

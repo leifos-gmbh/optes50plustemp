@@ -14,7 +14,7 @@ require_once './Modules/TestQuestionPool/classes/class.ilUserQuestionResult.php'
  * @author	Björn Heyser <bheyser@databay.de>
  * @author	Maximilian Becker <mbecker@databay.de>
  *          
- * @version	 $Id: class.assOrderingHorizontal.php 60741 2015-09-17 08:53:32Z bheyser $
+ * @version	 $Id: class.assOrderingHorizontal.php 61113 2015-10-16 13:38:50Z bheyser $
  * 
  * @ingroup	ModulesTestQuestionPool
  */
@@ -668,6 +668,16 @@ class assOrderingHorizontal extends assQuestion implements ilObjQuestionScoringA
 				break;
 		}
 	}
+	
+	public function supportsJavascriptOutput()
+	{
+		return true;
+	}
+
+	public function supportsNonJsOutput()
+	{
+		return false;
+	}
 
 	/**
 	 * Returns a JSON representation of the question
@@ -687,8 +697,8 @@ class assOrderingHorizontal extends assQuestion implements ilObjQuestionScoringA
 			? (int)$this->getTextSize()
 			: 100;
 		$result['feedback'] = array(
-			"onenotcorrect" => $this->feedbackOBJ->getGenericFeedbackTestPresentation($this->getId(), false),
-			"allcorrect" => $this->feedbackOBJ->getGenericFeedbackTestPresentation($this->getId(), true)
+			'onenotcorrect' => $this->formatSAQuestion($this->feedbackOBJ->getGenericFeedbackTestPresentation($this->getId(), false)),
+			'allcorrect' => $this->formatSAQuestion($this->feedbackOBJ->getGenericFeedbackTestPresentation($this->getId(), true))
 		);
 		
 		$arr = array();

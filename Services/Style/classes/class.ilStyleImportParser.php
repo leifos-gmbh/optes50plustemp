@@ -9,7 +9,7 @@ require_once("./Services/Xml/classes/class.ilSaxParser.php");
 * Style Import Parser
 *
 * @author Alex Killing <alex.killing@gmx.de>
-* @version $Id: class.ilStyleImportParser.php 33497 2012-03-02 23:24:57Z akill $
+* @version $Id: class.ilStyleImportParser.php 61113 2015-10-16 13:38:50Z bheyser $
 *
 * @extends ilSaxParser
 */
@@ -100,7 +100,8 @@ class ilStyleImportParser extends ilSaxParser
 					"class" => $this->current_class,
 					"parameter" => $a_attribs["Name"],
 					"type" => $this->current_type,
-					"value" => $a_attribs["Value"]);
+					"value" => $a_attribs["Value"],
+					"custom" => $a_attribs["Custom"]);
 				break;
 				
 			case "StyleColor":

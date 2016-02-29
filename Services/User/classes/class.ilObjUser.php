@@ -16,7 +16,7 @@ require_once './Services/User/exceptions/class.ilUserException.php';
 * @author	Sascha Hofmann <saschahofmann@gmx.de>
 * @author	Stefan Meyer <meyer@leifos.com>
 * @author	Peter Gabriel <pgabriel@databay.de>
-* @version	$Id: class.ilObjUser.php 60741 2015-09-17 08:53:32Z bheyser $
+* @version	$Id: class.ilObjUser.php 60961 2015-10-02 12:25:22Z bheyser $
 *
 * @ingroup ServicesUser
 */
@@ -3289,16 +3289,16 @@ class ilObjUser extends ilObject
 					if(!isset($all_parent_path[$parent_ref]))
 					{					
 						// #15746
-						if($is_nested_set)
-						{
-							$par_left = $tree->getLeftValue($parent_ref);
-							$all_parent_path[$parent_ref] = sprintf("%010d", $par_left);
-						}
-						else
-						{
+						//if($is_nested_set)
+						//{
+						//	$par_left = $tree->getLeftValue($parent_ref);
+						//	$all_parent_path[$parent_ref] = sprintf("%010d", $par_left);
+						//}
+						//else
+						//{
 							$node = $tree->getNodeData($parent_ref);						
-							$all_parent_path[$parent_ref] = $node["path"];
-						}
+							$all_parent_path[$parent_ref] = $node["title"];
+						//}
 					}
 					
 					$parent_path = $all_parent_path[$parent_ref];

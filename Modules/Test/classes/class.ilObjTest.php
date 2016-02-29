@@ -11,7 +11,7 @@ require_once 'Modules/Test/interfaces/interface.ilEctsGradesEnabled.php';
  *
  * @author		Helmut Schottmüller <helmut.schottmueller@mac.com>
  * @author		Björn Heyser <bheyser@databay.de>
- * @version		$Id: class.ilObjTest.php 60741 2015-09-17 08:53:32Z bheyser $
+ * @version		$Id: class.ilObjTest.php 60998 2015-10-06 13:39:07Z bheyser $
  *
  * @defgroup ModulesTest Modules/Test
  * @extends ilObject
@@ -2497,6 +2497,11 @@ function setGenericAnswerFeedback($generic_answer_feedback = 0)
 			$this->reporting_date = $reporting_date;
 		}
 	}
+
+	const SCORE_REPORTING_DISABLED = 0;
+	const SCORE_REPORTING_FINISHED = 1;
+	const SCORE_REPORTING_IMMIDIATLY = 2;
+	const SCORE_REPORTING_DATE = 3;
 
 /**
 * Gets the score reporting of the ilObjTest object

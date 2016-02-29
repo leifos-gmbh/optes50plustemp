@@ -8,7 +8,7 @@
 *
 * @author Alex Killing <alex.killing@gmx.de>
 * @author Helmut Schottmüller <helmut.schottmueller@mac.com>
-* @version $Id: class.ilStr.php 54517 2014-10-23 13:25:43Z akill $
+* @version $Id: class.ilStr.php 60961 2015-10-02 12:25:22Z bheyser $
 */
 class ilStr
 {
@@ -16,6 +16,11 @@ class ilStr
 	{
 		if (function_exists("mb_substr"))
 		{
+			// see https://bugs.php.net/bug.php?id=62703
+			if ($a_length === NULL)
+			{
+				$a_length = self::strLen($a_str);
+			}
 			return mb_substr($a_str, $a_start, $a_length, "UTF-8");
 		}
 		else

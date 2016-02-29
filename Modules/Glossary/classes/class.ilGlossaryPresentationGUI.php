@@ -15,7 +15,7 @@ require_once("./Services/COPage/classes/class.ilPCParagraph.php");
 * GUI class for glossary presentation
 *
 * @author Alex Killing <alex.killing@gmx.de>
-* @version $Id: class.ilGlossaryPresentationGUI.php 60741 2015-09-17 08:53:32Z bheyser $
+* @version $Id: class.ilGlossaryPresentationGUI.php 60961 2015-10-02 12:25:22Z bheyser $
 *
 * @ilCtrl_Calls ilGlossaryPresentationGUI: ilNoteGUI, ilInfoScreenGUI, ilShopPurchaseGUI, ilPresentationListTableGUI
 *
@@ -1187,6 +1187,7 @@ class ilGlossaryPresentationGUI
 		$this->form->addItem($radg);
 
 		$this->form->addCommandButton("printView", $lng->txt("cont_show_print_view"));
+		$this->form->setPreventDoubleSubmission(false);
 
 		$this->form->setTitle($lng->txt("cont_print_selection"));
 	}

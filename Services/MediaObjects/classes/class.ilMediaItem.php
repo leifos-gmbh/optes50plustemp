@@ -9,7 +9,7 @@ require_once("Services/MediaObjects/classes/class.ilMapArea.php");
 * Media Item, component of a media object (file or reference)
 *
 * @author Alex Killing <alex.killing@gmx.de>
-* @version $Id: class.ilMediaItem.php 37237 2012-09-28 11:42:38Z akill $
+* @version $Id: class.ilMediaItem.php 60998 2015-10-06 13:39:07Z bheyser $
 *
 * @ingroup ServicesMediaObjects
 */
@@ -997,6 +997,7 @@ class ilMediaItem
 				break;
 
 			case "jpg":
+			case "jpeg":
 				$this->map_image = ImageCreateFromJPEG($this->getMapWorkCopyName());
 				break;
 
@@ -1033,6 +1034,7 @@ class ilMediaItem
 				break;
 
 			case "jpg":
+			case "jpeg":
 				ImageJPEG($this->map_image, $this->getMapWorkCopyName());
 				break;
 

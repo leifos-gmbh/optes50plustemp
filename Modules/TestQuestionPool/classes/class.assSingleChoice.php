@@ -17,7 +17,7 @@ require_once './Modules/TestQuestionPool/classes/class.ilUserQuestionResult.php'
  * @author	Björn Heyser <bheyser@databay.de>
  * @author	Maximilian Becker <mbecker@databay.de>
  *          
- * @version		$Id: class.assSingleChoice.php 60741 2015-09-17 08:53:32Z bheyser $
+ * @version		$Id: class.assSingleChoice.php 61113 2015-10-16 13:38:50Z bheyser $
  * 
  * @ingroup		ModulesTestQuestionPool
  */
@@ -1072,8 +1072,8 @@ class assSingleChoice extends assQuestion implements  ilObjQuestionScoringAdjust
 		$result['shuffle'] = (bool) $this->getShuffle();
 		
 		$result['feedback'] = array(
-			"onenotcorrect" => $this->feedbackOBJ->getGenericFeedbackTestPresentation($this->getId(), false),
-			"allcorrect" => $this->feedbackOBJ->getGenericFeedbackTestPresentation($this->getId(), true)
+			'onenotcorrect' => $this->formatSAQuestion($this->feedbackOBJ->getGenericFeedbackTestPresentation($this->getId(), false)),
+			'allcorrect' => $this->formatSAQuestion($this->feedbackOBJ->getGenericFeedbackTestPresentation($this->getId(), true))
 		);
 
 		$answers = array();

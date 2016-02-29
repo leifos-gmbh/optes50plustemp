@@ -9,7 +9,7 @@ require_once "./Services/Container/classes/class.ilContainerGUI.php";
 *
 * @author Stefan Meyer <meyer@leifos.com>
 * @author Sascha Hofmann <saschahofmann@gmx.de>
-* @version $Id: class.ilObjCategoryGUI.php 60741 2015-09-17 08:53:32Z bheyser $
+* @version $Id: class.ilObjCategoryGUI.php 60961 2015-10-02 12:25:22Z bheyser $
 *
 * @ilCtrl_Calls ilObjCategoryGUI: ilPermissionGUI, ilContainerPageGUI, ilContainerLinkListGUI, ilObjUserGUI, ilObjUserFolderGUI
 * @ilCtrl_Calls ilObjCategoryGUI: ilInfoScreenGUI, ilObjStyleSheetGUI, ilCommonActionDispatcherGUI, ilObjectTranslationGUI
@@ -1672,7 +1672,10 @@ class ilObjCategoryGUI extends ilContainerGUI
 				}
 				$this->object->saveIcons($_FILES["cont_icon"]['tmp_name']);
 			}
-			ilUtil::sendSuccess($this->lng->txt("msg_obj_modified"),true);
+			if ($_FILES["cont_icon"]['tmp_name'] || $_POST["cont_icon_delete"])
+			{
+				ilUtil::sendSuccess($this->lng->txt("msg_obj_modified"),true);
+			}
 			$this->ctrl->redirect($this,"editIcons");
 		}
 

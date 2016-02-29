@@ -8,7 +8,7 @@ require_once "./Services/Object/classes/class.ilObject.php";
 * Class ilObjStyleSheet
 *
 * @author Alex Killing <alex.killing@gmx.de>
-* $Id: class.ilObjStyleSheet.php 60741 2015-09-17 08:53:32Z bheyser $
+* $Id: class.ilObjStyleSheet.php 61113 2015-10-16 13:38:50Z bheyser $
 *
 * @extends ilObject
 */
@@ -1974,7 +1974,7 @@ class ilObjStyleSheet extends ilObject
 				{
 					foreach($style as $tag)
 					{
-						$xml.="<StyleParameter Name=\"".$tag["parameter"]."\" Value=\"".$tag["value"]."\"/>\n";
+						$xml.="<StyleParameter Name=\"".$tag["parameter"]."\" Value=\"".$tag["value"]."\" Custom=\"".$tag["custom"]."\" />\n";
 					}
 				}
 			}
@@ -2284,7 +2284,7 @@ class ilObjStyleSheet extends ilObject
 					}
 				}
 				
-				$q = "INSERT INTO style_parameter (id,style_id, tag, class, parameter, type, value) VALUES ".
+				$q = "INSERT INTO style_parameter (id,style_id, tag, class, parameter, type, value, custom) VALUES ".
 					"(".
 					$ilDB->quote($id, "integer").",".
 					$ilDB->quote($this->getId(), "integer").",".
@@ -2292,8 +2292,9 @@ class ilObjStyleSheet extends ilObject
 					$ilDB->quote($tag["class"], "text").",".
 					$ilDB->quote($tag["parameter"], "text").",".
 					$ilDB->quote($tag["type"], "text").",".
-					$ilDB->quote($tag["value"], "text").")";
-//echo "<br>-$q";
+					$ilDB->quote($tag["value"], "text").",".
+					$ilDB->quote((bool) $tag["custom"], "integer").
+					")";
 				$ilDB->manipulate($q);
 			}
 		}

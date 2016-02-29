@@ -5,7 +5,7 @@
 * This class represents a key value pair wizard property in a property form.
 *
 * @author Helmut Schottmüller <ilias@aurealis.de> 
-* @version $Id: class.ilErrorTextWizardInputGUI.php 54256 2014-10-15 09:23:40Z nkrzywon $
+* @version $Id: class.ilErrorTextWizardInputGUI.php 60961 2015-10-02 12:25:22Z bheyser $
 * @ingroup	ServicesForm
 */
 class ilErrorTextWizardInputGUI extends ilTextInputGUI
@@ -236,7 +236,7 @@ class ilErrorTextWizardInputGUI extends ilTextInputGUI
 						$this->setAlert($lng->txt("form_msg_numeric_value_required"));
 						return FALSE;
 					}
-					if((int)$val <= 0)
+					if((float)$val <= 0)
 					{
 						$this->setAlert($lng->txt("positive_numbers_required"));
 						return FALSE;

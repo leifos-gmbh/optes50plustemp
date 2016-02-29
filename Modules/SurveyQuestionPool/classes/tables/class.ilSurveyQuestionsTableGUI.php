@@ -26,7 +26,7 @@ include_once('./Services/Table/classes/class.ilTable2GUI.php');
 /**
 *
 * @author Helmut Schottmüller <ilias@aurealis.de>
-* @version $Id: class.ilSurveyQuestionsTableGUI.php 56504 2014-12-17 10:21:06Z bheyser $
+* @version $Id: class.ilSurveyQuestionsTableGUI.php 61113 2015-10-16 13:38:50Z bheyser $
 *
 * @ingroup ModulesSurveyQuestionPool
 */
@@ -46,6 +46,8 @@ class ilSurveyQuestionsTableGUI extends ilTable2GUI
 	public function __construct($a_parent_obj, $a_parent_cmd, $a_write_access = false)
 	{
 		$this->setId("spl");
+		$this->setPrefix('q_id'); // #16982
+		
 		parent::__construct($a_parent_obj, $a_parent_cmd);
 
 		global $lng, $ilCtrl;
@@ -78,8 +80,6 @@ class ilSurveyQuestionsTableGUI extends ilTable2GUI
 		}
 		
 		$this->addColumn("", "");		
-		
-		$this->setPrefix('q_id');
 		
 		if ($this->getWriteAccess())
 		{

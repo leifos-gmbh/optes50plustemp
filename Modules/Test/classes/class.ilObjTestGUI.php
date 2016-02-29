@@ -15,7 +15,7 @@ require_once './Modules/Test/classes/class.ilTestExpressPage.php';
  * @author		Björn Heyser <bheyser@databay.de>
  * @author		Maximilian Becker <mbecker@databay.de>
  * 
- * @version		$Id: class.ilObjTestGUI.php 60741 2015-09-17 08:53:32Z bheyser $
+ * @version		$Id: class.ilObjTestGUI.php 61113 2015-10-16 13:38:50Z bheyser $
  *
  * @ilCtrl_Calls ilObjTestGUI: ilObjCourseGUI, ilMDEditorGUI, ilCertificateGUI, ilPermissionGUI
  * @ilCtrl_Calls ilObjTestGUI: ilTestPlayerFixedQuestionSetGUI, ilTestPlayerRandomQuestionSetGUI, ilTestPlayerDynamicQuestionSetGUI
@@ -47,6 +47,10 @@ require_once './Modules/Test/classes/class.ilTestExpressPage.php';
  */
 class ilObjTestGUI extends ilObjectGUI
 {
+	private static $infoScreenChildClasses = array(
+		'ilpublicuserprofilegui', 'ilobjportfoliogui'
+	);
+	
 	/** @var ilObjTest $object */
 	public $object = null;
 
@@ -3150,6 +3154,16 @@ class ilObjTestGUI extends ilObjectGUI
 		$this->defaultsObject();
 	}
 
+	private function isCommandClassAnyInfoScreenChild()
+	{
+		if( in_array($this->ctrl->getCmdClass(), self::$infoScreenChildClasses) )
+		{
+			return true;
+		}
+		
+		return false;
+	}
+	
 	/**
 	 * this one is called from the info button in the repository
 	 * not very nice to set cmdClass/Cmd manually, if everything
@@ -3208,7 +3222,12 @@ class ilObjTestGUI extends ilObjectGUI
 
 		include_once("./Services/InfoScreen/classes/class.ilInfoScreenGUI.php");
 		$info = new ilInfoScreenGUI($this);
-
+		
+		if( $this->isCommandClassAnyInfoScreenChild() )
+		{
+			return $this->ctrl->forwardCommand($info);
+		}
+		
 		$this->ctrl->setParameter($testPlayerGUI, "sequence", $testSession->getLastSequence());
 
 		$info->setFormAction($this->ctrl->getFormAction($testPlayerGUI));
@@ -3299,7 +3318,7 @@ class ilObjTestGUI extends ilObjectGUI
 					if ($this->object->canShowTestResults($testSession, $ilUser->getId()) && count($testPassesSelector->getReportablePasses())) 
 					{
 						$btn = ilLinkButton::getInstance();
-						$btn->setCaption('tst_show_comp_results');
+						$btn->setCaption('tst_show_results');
 						$btn->setUrl($this->ctrl->getLinkTargetByClass('ilTestEvaluationGUI',  'outUserResultsOverview'));
 						$btn->setPrimary(false);
 						$big_button[] = $btn;
@@ -3363,7 +3382,7 @@ class ilObjTestGUI extends ilObjectGUI
 			ilUtil::sendInfo($message);
 		}
 
-		if( $this->areSkillLevelThresholdsMissing() )
+		if( $this->object->isSkillServiceToBeConsidered() && $this->areSkillLevelThresholdsMissing() )
 		{
 			ilUtil::sendFailure($this->getSkillLevelThresholdsMissingInfo());
 		}

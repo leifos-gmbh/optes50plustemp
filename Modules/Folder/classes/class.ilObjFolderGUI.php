@@ -6,7 +6,7 @@
 * Class ilObjFolderGUI
 *
 * @author Alex Killing <alex.killing@gmx.de>
-* $Id: class.ilObjFolderGUI.php 56504 2014-12-17 10:21:06Z bheyser $
+* $Id: class.ilObjFolderGUI.php 60961 2015-10-02 12:25:22Z bheyser $
 *
 * @ilCtrl_Calls ilObjFolderGUI: ilPermissionGUI
 * @ilCtrl_Calls ilObjFolderGUI: ilCourseContentGUI, ilLearningProgressGUI
@@ -578,7 +578,10 @@ class ilObjFolderGUI extends ilContainerGUI
 				}
 				$this->object->saveIcons($_FILES["cont_icon"]['tmp_name']);
 			}
-			ilUtil::sendSuccess($this->lng->txt("msg_obj_modified"),true);
+			if ($_FILES["cont_icon"]['tmp_name'] || $_POST["cont_icon_delete"])
+			{
+				ilUtil::sendSuccess($this->lng->txt("msg_obj_modified"),true);
+			}
 			$this->ctrl->redirect($this,"editIcons");
 		}
 

@@ -8,7 +8,7 @@ include_once("./Services/Style/classes/class.ilPageLayout.php");
  * Style settings GUI class
  *
  * @author Alex Killing <alex.killing@gmx.de>
- * @version $Id: class.ilObjStyleSettingsGUI.php 56831 2015-01-07 11:22:27Z smeyer $
+ * @version $Id: class.ilObjStyleSettingsGUI.php 60961 2015-10-02 12:25:22Z bheyser $
  * 
  * @ilCtrl_Calls ilObjStyleSettingsGUI: ilPermissionGUI, ilPageLayoutGUI
  * 
@@ -561,51 +561,42 @@ class ilObjStyleSettingsGUI extends ilObjectGUI
 
 	}
 
+	/**
+	 * Set scope
+	 *
+	 * @param
+	 * @return
+	 */
 	function setScopeObject()
 	{
-		if ($_GET["id"] > 0)
-		{		
-			include_once ("./Services/Style/classes/class.ilStyleScopeExplorer.php");
-			$exp = new ilStyleScopeExplorer("ilias.php?baseClass=ilRepositoryGUI&amp;cmd=goto");
-			$exp->setExpandTarget("ilias.php?baseClass=ilRepositoryGUI&amp;cmd=showTree");
-			$exp->setTargetGet("ref_id");
-			$exp->setFilterMode(IL_FM_POSITIVE);
-			$exp->forceExpandAll(true, false);
-			$exp->addFilter("root");
-			$exp->addFilter("cat");
+		global $tpl, $ilCtrl;
 
-			if ($_GET["expand"] == "")
-			{
-				$expanded = $this->tree->readRootId();
-			}
-			else
-			{
-				$expanded = $_GET["expand"];
-			}
-
-			$exp->setExpand($expanded);
-
-			// build html-output
-			$exp->setOutput(0);
-			$output = $exp->getOutput();
+		$ilCtrl->saveParameter($this, "id");
+		include_once("./Services/Repository/classes/class.ilRepositorySelectorExplorerGUI.php");
+		$exp = new ilRepositorySelectorExplorerGUI($this, "setScope",
+			$this, "saveScope", "cat");
+		$exp->setTypeWhiteList(array("root", "cat"));
+		if (!$exp->handleCommand())
+		{
+			$tpl->setContent($exp->getHTML());
 		}
-
-		$this->tpl->setVariable("ADM_CONTENT", $output);
 	}
-	
+
 	/**
-	* save scope for style
+	* Save scope for style
 	*/
 	function saveScopeObject()
 	{
-		global $ilias;
-		
+		global $tree;
+
 		include_once("./Services/Style/classes/class.ilObjStyleSheet.php");
-		if ($_GET["cat"] == 0)
+		if ($_GET["cat"] == $tree->readRootId())
 		{
-			$_GET["cat"] == "";
+			$_GET["cat"] = "";
 		}
-		ilObjStyleSheet::_writeScope($_GET["style_id"], $_GET["cat"]);
+		ilObjStyleSheet::_writeScope($_GET["id"], $_GET["cat"]);
+
+		ilUtil::sendSuccess($this->lng->txt("msg_obj_modified"), true);
 		
 		ilUtil::redirect($this->ctrl->getLinkTarget($this, "editContentStyles", "", false, false));
 	}

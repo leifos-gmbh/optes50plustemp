@@ -15,7 +15,7 @@ require_once("./Services/COPage/classes/class.ilPCParagraph.php");
 * GUI class for ilGlossary
 *
 * @author Alex Killing <alex.killing@gmx.de>
-* @version $Id: class.ilObjGlossaryGUI.php 57074 2015-01-13 13:38:45Z jluetzen $
+* @version $Id: class.ilObjGlossaryGUI.php 60998 2015-10-06 13:39:07Z bheyser $
 *
 * @ilCtrl_Calls ilObjGlossaryGUI: ilGlossaryTermGUI, ilMDEditorGUI, ilPermissionGUI
 * @ilCtrl_Calls ilObjGlossaryGUI: ilInfoScreenGUI, ilCommonActionDispatcherGUI, ilObjStyleSheetGUI
@@ -374,6 +374,8 @@ class ilObjGlossaryGUI extends ilObjectGUI
 	*/
 	function importFileObject()
 	{
+		global $tpl, $ilErr;
+		
 		$new_type = $_REQUEST["new_type"];
 
 		// create permission is already checked in createObject. This check here is done to prevent hacking attempts

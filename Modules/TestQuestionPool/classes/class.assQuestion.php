@@ -13,7 +13,7 @@ include_once "./Modules/Test/classes/inc.AssessmentConstants.php";
  * 
  * @author		Helmut Schottmüller <helmut.schottmueller@mac.com>
  * @author		Björn Heyser <bheyser@databay.de>
- * @version		$Id: class.assQuestion.php 60741 2015-09-17 08:53:32Z bheyser $
+ * @version		$Id: class.assQuestion.php 60961 2015-10-02 12:25:22Z bheyser $
  * 
  * @ingroup		ModulesTestQuestionPool
  */
@@ -607,9 +607,19 @@ abstract class assQuestion
 	* @return boolean TRUE if the question type supports JavaScript output, FALSE otherwise
 	* @access public
 	*/
-	function supportsJavascriptOutput()
+	public function supportsJavascriptOutput()
 	{
 		return FALSE;
+	}
+
+	public function supportsNonJsOutput()
+	{
+		return true;
+	}
+	
+	public function requiresJsSwitch()
+	{
+		return $this->supportsJavascriptOutput() && $this->supportsNonJsOutput();
 	}
 
 	/**

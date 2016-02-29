@@ -12,7 +12,7 @@ include_once './Services/PersonalDesktop/interfaces/interface.ilDesktopItemHandl
 * root folder, course, group, category, folder
 *
 * @author Alex Killing <alex.killing@gmx.de>
-* @version $Id: class.ilContainerGUI.php 60741 2015-09-17 08:53:32Z bheyser $
+* @version $Id: class.ilContainerGUI.php 61113 2015-10-16 13:38:50Z bheyser $
 *
 * @extends ilObjectGUI
 */
@@ -1738,14 +1738,8 @@ class ilContainerGUI extends ilObjectGUI implements ilDesktopItemHandling
 
 		if (count($no_link))
 		{
-			$no_link = array_unique($no_link);
-
-			foreach ($no_link as $type)
-			{
-				$txt_objs[] = $this->lng->txt("objs_".$type);
-			}
-
-			$this->ilias->raiseError(implode(', ',$txt_objs)." ".$this->lng->txt("msg_obj_no_link"),$this->ilias->error_obj->MESSAGE);
+			//#12203
+			$this->ilias->raiseError($this->lng->txt("msg_obj_no_link"),$this->ilias->error_obj->MESSAGE);
 
 			//$this->ilias->raiseError($this->lng->txt("msg_not_possible_link")." ".
 			//						 implode(',',$no_link),$this->ilias->error_obj->MESSAGE);
@@ -3653,8 +3647,9 @@ class ilContainerGUI extends ilObjectGUI implements ilDesktopItemHandling
 		$mode = ($_SESSION["il_rep_mode"] != "")
 			? $_SESSION["il_rep_mode"]
 			: "flat";
-			
-		if ($mode == "tree")
+
+		// check for administration context, see #0016312
+		if ($mode == "tree" && (strtolower($_GET["baseClass"]) != "iladministrationgui"))
 		{
 			include_once("./Services/Repository/classes/class.ilRepositoryExplorerGUI.php");
 			$exp = new ilRepositoryExplorerGUI($this, "showRepTree");

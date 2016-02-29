@@ -19,7 +19,7 @@ require_once './Modules/TestQuestionPool/classes/class.ilUserQuestionResult.php'
  * @author		Björn Heyser <bheyser@databay.de>
  * @author		Maximilian Becker <bheyser@databay.de>
  *
- * @version		$Id: class.assMultipleChoice.php 60741 2015-09-17 08:53:32Z bheyser $
+ * @version		$Id: class.assMultipleChoice.php 61113 2015-10-16 13:38:50Z bheyser $
  * 
  * @ingroup		ModulesTestQuestionPool
  */
@@ -1038,8 +1038,8 @@ class assMultipleChoice extends assQuestion implements ilObjQuestionScoringAdjus
 		$result['nr_of_tries'] = (int) $this->getNrOfTries();
 		$result['shuffle'] = (bool) $this->getShuffle();
 		$result['feedback'] = array(
-			"onenotcorrect" => $this->feedbackOBJ->getGenericFeedbackTestPresentation($this->getId(), false),
-			"allcorrect" => $this->feedbackOBJ->getGenericFeedbackTestPresentation($this->getId(), true)
+			'onenotcorrect' => $this->formatSAQuestion($this->feedbackOBJ->getGenericFeedbackTestPresentation($this->getId(), false)),
+			'allcorrect' => $this->formatSAQuestion($this->feedbackOBJ->getGenericFeedbackTestPresentation($this->getId(), true))
 		);
 
 		$answers = array();

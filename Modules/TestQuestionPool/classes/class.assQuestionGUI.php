@@ -13,7 +13,7 @@ require_once 'Modules/Test/classes/class.ilTestExpressPage.php';
 *
 * @author		Helmut Schottmüller <helmut.schottmueller@mac.com>
 * @author		Björn Heyser <bheyser@databay.de>
-* @version		$Id: class.assQuestionGUI.php 60123 2015-07-23 12:04:43Z bheyser $
+* @version		$Id: class.assQuestionGUI.php 61113 2015-10-16 13:38:50Z bheyser $
 * @ingroup		ModulesTestQuestionPool
 */
 abstract class assQuestionGUI
@@ -865,6 +865,7 @@ abstract class assQuestionGUI
 	{
 	    // title
 		$title = new ilTextInputGUI($this->lng->txt("title"), "title");
+		$title->setMaxLength(100);
 		$title->setValue($this->object->getTitle());
 		$title->setRequired(TRUE);
 		$form->addItem($title);

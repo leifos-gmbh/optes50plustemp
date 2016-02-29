@@ -7,7 +7,7 @@ require_once 'Services/Taxonomy/interfaces/interface.ilTaxAssignedItemInfo.php';
  * Handles a list of questions
  *
  * @author		Björn Heyser <bheyser@databay.de>
- * @version		$Id: class.ilAssQuestionList.php 59735 2015-07-01 13:29:34Z bheyser $
+ * @version		$Id: class.ilAssQuestionList.php 60961 2015-10-02 12:25:22Z bheyser $
  * 
  * @package		Modules/TestQuestionPool
  * 
@@ -429,6 +429,16 @@ class ilAssQuestionList implements ilTaxAssignedItemInfo
 		return $expressions;
 	}
 	
+	private function getParentObjectIdFilterExpression()
+	{
+		if( $this->parentObjId )
+		{
+			return "qpl_questions.obj_fi = {$this->db->quote($this->parentObjId, 'integer')}";
+		}
+		
+		return null;
+	}
+	
 	private function getAnswerStatusFilterExpressions()
 	{
 		$expressions = array();
@@ -493,6 +503,11 @@ class ilAssQuestionList implements ilTaxAssignedItemInfo
 		if( $this->getParentObjFilterExpression() !== null )
 		{
 			$CONDITIONS[] = $this->getParentObjFilterExpression();
+		}
+		
+		if( $this->getParentObjectIdFilterExpression() !== null )
+		{
+			$CONDITIONS[] = $this->getParentObjectIdFilterExpression();
 		}
 
 		$CONDITIONS = array_merge($CONDITIONS,

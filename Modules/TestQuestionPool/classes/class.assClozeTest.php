@@ -16,7 +16,7 @@ require_once './Modules/TestQuestionPool/classes/class.ilUserQuestionResult.php'
  * @author		Björn Heyser <bheyser@databay.de>
  * @author		Maximilian Becker <mbecker@databay.de>
  * 
- * @version		$Id: class.assClozeTest.php 60741 2015-09-17 08:53:32Z bheyser $
+ * @version		$Id: class.assClozeTest.php 61113 2015-10-16 13:38:50Z bheyser $
  * 
  * @ingroup 	ModulesTestQuestionPool
  */
@@ -1249,6 +1249,8 @@ class assClozeTest extends assQuestion implements ilObjQuestionScoringAdjustable
 				);
 			}
 		}
+		
+		ksort($user_result); // this is required when identical scoring for same solutions is disabled
 
 		if ($returndetails)
 		{
@@ -1316,7 +1318,7 @@ class assClozeTest extends assQuestion implements ilObjQuestionScoringAdjustable
 		
 		foreach($this->getSolutionSubmit() as $val1 => $val2)
 		{
-			$value = ilUtil::stripSlashes($val2, FALSE);
+			$value = trim(ilUtil::stripSlashes($val2, FALSE));
 			if (strlen($value))
 			{
 				$gap = $this->getGap(trim(ilUtil::stripSlashes($val1)));
@@ -1597,8 +1599,8 @@ class assClozeTest extends assQuestion implements ilObjQuestionScoringAdjustable
 		$result['nr_of_tries'] = (int) $this->getNrOfTries();
 		$result['shuffle'] = (bool) $this->getShuffle();
 		$result['feedback'] = array(
-			"onenotcorrect" => $this->feedbackOBJ->getGenericFeedbackTestPresentation($this->getId(), false),
-			"allcorrect" => $this->feedbackOBJ->getGenericFeedbackTestPresentation($this->getId(), true)
+			'onenotcorrect' => $this->formatSAQuestion($this->feedbackOBJ->getGenericFeedbackTestPresentation($this->getId(), false)),
+			'allcorrect' => $this->formatSAQuestion($this->feedbackOBJ->getGenericFeedbackTestPresentation($this->getId(), true))
 		);
 		
 		$gaps = array();
@@ -1609,7 +1611,7 @@ class assClozeTest extends assQuestion implements ilObjQuestionScoringAdjustable
 			{				
 				$jitem = array();
 				$jitem['points'] = $item->getPoints();
-				$jitem['value'] = $item->getAnswertext();
+				$jitem['value'] = $this->formatSAQuestion($item->getAnswertext());
 				$jitem['order'] = $item->getOrder();
 				if ($gap->getType() == CLOZE_NUMERIC)
 				{
@@ -1623,7 +1625,7 @@ class assClozeTest extends assQuestion implements ilObjQuestionScoringAdjustable
 				array_push($items, $jitem);
 			}
 
-			if( $gap->getType() == CLOZE_TEXT || $gap->getType() == CLOZE_NUMERIC )
+			if( $gap->getGapSize() && ($gap->getType() == CLOZE_TEXT || $gap->getType() == CLOZE_NUMERIC) )
 			{
 				$jgap['size'] = $gap->getGapSize();
 			}
