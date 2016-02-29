@@ -10,7 +10,7 @@ div.tblfooter {
 
 div.ilTableNav {
 	font-weight: normal;
-	padding: 3px;
+	padding: 0 3px;
 	font-size: 80%;
 	text-align: right;
 }
@@ -43,13 +43,16 @@ div.ilTableHeaderTitleBlock {
 	padding: 3px;
 	font-size: 90%;
 	color: #404040;
-	background: url(images/block_top.png) repeat-x #F8F8F8;
+	background: url("@{background-images-path}block_top.png") repeat-x #F8F8F8;
 	border-bottom: 1px solid #E9E9E9;
 }
 
 div.ilTableHeaderTitle {
-	margin: 0 0 5px 0;
-	padding: 0 0 2px 0;
+	margin: 15px 0 0;
+	padding: 0;
+	+ .ilHeaderDesc {
+		margin: 0 0 5px;
+	}
 }
 
 h3.ilTableHeaderTitleBlock {
@@ -112,6 +115,11 @@ legend.ilTableFilter {
 	padding: 2px 5px;
 	margin: -12px 0 0;
 	font-weight: normal;
+	text-align: right;
+	> a {
+		margin-right: -20px;
+		margin-top: -15px;
+	}
 }
 
 fieldset.ilTableFilter {

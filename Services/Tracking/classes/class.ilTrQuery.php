@@ -88,7 +88,7 @@ class ilTrQuery
 		}
 	}
 
-	function getObjectivesStatusForUser($a_user_id, $a_obj_id, array $a_objective_ids)
+	static function getObjectivesStatusForUser($a_user_id, $a_obj_id, array $a_objective_ids)
 	{
 		global $ilDB;
 						
@@ -98,6 +98,7 @@ class ilTrQuery
 		$query =  "SELECT crs_id, crs_objectives.objective_id AS obj_id, title,".$ilDB->quote("lobj", "text")." AS type".
 			" FROM crs_objectives".			
 			" WHERE ".$ilDB->in("crs_objectives.objective_id", $a_objective_ids, false, "integer").
+			" AND active = ".$ilDB->quote(1, "integer").
 			" ORDER BY position";
 		$set = $ilDB->query($query);
 		$result = array();
@@ -458,7 +459,8 @@ class ilTrQuery
 		$queries = array();
 		$queries[] = array("fields"=>$fields, "query"=>$query);
 
-		// objectives data 
+		// patch LOK
+		/* objectives data 
 		if($objects["objectives_parent_id"])
 		{
 			$objective_fields = array("crs_objectives.objective_id AS obj_id", "title",
@@ -488,6 +490,7 @@ class ilTrQuery
 
 			$where = array();
 			$where[] = "crs_objectives.crs_id = ".$ilDB->quote($objects["objectives_parent_id"], "integer");
+			$where[] = "crs_objectives.active = ".$ilDB->quote(1, "integer");
 		
 			$objectives_query = " FROM crs_objectives".
 				" LEFT JOIN loc_user_results ON (crs_objectives.objective_id = loc_user_results.objective_id".
@@ -496,7 +499,8 @@ class ilTrQuery
 				self::buildFilters($where, $a_filters);
 			
 			$queries[] = array("fields"=>$objective_fields, "query"=>$objectives_query, "count"=>"crs_objectives.objective_id");
-		}
+		} 
+     	*/
 		
 		if(!in_array($a_order_field, $fields))
 		{
@@ -585,6 +589,21 @@ class ilTrQuery
 					$result["cnt"]++;
 				}
 			}
+			
+			// patch LOK
+			
+			// #15379 - objectives data 
+			if($objects["objectives_parent_id"])
+			{		
+				include_once "Modules/Course/classes/class.ilCourseObjective.php";
+				include_once "Modules/Course/classes/Objectives/class.ilLOUserResults.php";	
+				$objtv_ids = ilCourseObjective::_getObjectiveIds($objects["objectives_parent_id"], true);
+				foreach(self::getObjectivesStatusForUser($a_user_id, $objects["objectives_parent_id"], $objtv_ids) as $item)
+				{				
+					$result["set"][] = $item;
+					$result["cnt"]++;
+				}
+			}			
 		}
 		return $result;
 	}

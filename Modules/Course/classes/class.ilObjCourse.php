@@ -11,7 +11,7 @@
 	| of the License, or (at your option) any later version.                      |
 	|                                                                             |
 	| This program is distributed in the hope that it will be useful,             |
-	| but WITHOUT ANY WARRANTY; without even the implied warranty of              |
+	| but WITHOUT ANY WARRANTY; without ceven the implied warranty of              |
 	| MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the               |
 	| GNU General Public License for more details.                                |
 	|                                                                             |
@@ -29,7 +29,7 @@ include_once './Services/Membership/interfaces/interface.ilMembershipRegistratio
 * Class ilObjCourse
 *
 * @author Stefan Meyer <meyer@leifos.com> 
-* @version $Id: class.ilObjCourse.php 55306 2014-11-19 09:02:42Z bheyser $
+* @version $Id: class.ilObjCourse.php 57749 2015-02-03 06:36:22Z bheyser $
 * 
 */
 class ilObjCourse extends ilContainer implements ilMembershipRegistrationCodes
@@ -539,7 +539,12 @@ class ilObjCourse extends ilContainer implements ilMembershipRegistrationCodes
 		
 		$sessions = array_merge($previous,$current,$next);
 		$this->items['sess'] = $sessions;
-		$this->items[(int) $a_admin_panel_enabled][(int) $a_include_side_block] = $this->items;
+		
+		// #15389 - see ilContainer::getSubItems()
+		include_once('Services/Container/classes/class.ilContainerSorting.php');
+		$sort = ilContainerSorting::_getInstance($this->getId());				
+		$this->items[(int) $a_admin_panel_enabled][(int) $a_include_side_block] = $sort->sortItems($this->items);
+		
 		return $this->items[(int) $a_admin_panel_enabled][(int) $a_include_side_block];
 	}
 	
@@ -895,7 +900,7 @@ class ilObjCourse extends ilContainer implements ilMembershipRegistrationCodes
 		$cert = new ilCertificate(new ilCourseCertificateAdapter($this));
 		$newcert = new ilCertificate(new ilCourseCertificateAdapter($new_obj));
 		$cert->cloneCertificate($newcert);
-		
+				
 		return $new_obj;
 	}
 	
@@ -920,11 +925,15 @@ class ilObjCourse extends ilContainer implements ilMembershipRegistrationCodes
 		include_once('Services/Object/classes/class.ilObjectActivation.php');
 		ilObjectActivation::cloneDependencies($this->getRefId(),$a_target_id,$a_copy_id);
 		
+		// clone objective settings
+		include_once './Modules/Course/classes/Objectives/class.ilLOSettings.php';
+		ilLOSettings::cloneSettings($a_copy_id, $this->getId(), ilObject::_lookupObjId($a_target_id));
+
 		// Clone course learning objectives
 		include_once('Modules/Course/classes/class.ilCourseObjective.php');
 		$crs_objective = new ilCourseObjective($this);
 		$crs_objective->ilClone($a_target_id,$a_copy_id);
-				
+		
 	 	return true;
 	}
 	
@@ -1908,6 +1917,7 @@ class ilObjCourse extends ilContainer implements ilMembershipRegistrationCodes
 	 */
 	public function register($a_user_id,$a_role = ilCourseConstants::CRS_MEMBER, $a_force_registration = false)
 	{
+		global $ilCtrl, $tree;
 		include_once './Services/Membership/exceptions/class.ilMembershipRegistrationException.php';
 		include_once "./Modules/Course/classes/class.ilCourseParticipants.php";
 		$part = ilCourseParticipants::_getInstanceByObjId($this->getId());
@@ -1920,11 +1930,27 @@ class ilObjCourse extends ilContainer implements ilMembershipRegistrationCodes
 		if(!$a_force_registration)
 		{
 			// Availability
-			if(!self::_registrationEnabled($this->getId()))
+			if($this->getSubscriptionLimitationType() == IL_CRS_SUBSCRIPTION_DEACTIVATED)
 			{
-				$this->lng->loadLanguageModule('crs');
-				throw new ilMembershipRegistrationException($this->lng->txt('crs_info_reg_deactivated'),$this->getRefId());
+				include_once './Modules/Group/classes/class.ilObjGroupAccess.php';
+
+				if(!ilObjCourseAccess::_usingRegistrationCode())
+				{
+					throw new ilMembershipRegistrationException('Cant registrate to course '.$this->getId().
+						', course subscription is deactivated.', '456');
+				}
 			}
+
+			// Time Limitation
+			if($this->getSubscriptionLimitationType() == IL_CRS_SUBSCRIPTION_LIMITED)
+			{
+				if( !$this->inSubscriptionTime() )
+				{
+					throw new ilMembershipRegistrationException('Cant registrate to course '.$this->getId().
+						', course is out of registration time.', '789');
+				}
+			}
+
 			// Max members
 			if($this->isSubscriptionMembershipLimited())
 			{
@@ -1933,7 +1959,21 @@ class ilObjCourse extends ilContainer implements ilMembershipRegistrationCodes
 				$waiting_list = new ilCourseWaitingList($this->getId());
 				if($this->enabledWaitingList() and (!$free or $waiting_list->getCountUsers()))
 				{
-					throw new ilMembershipRegistrationException('',$this->getRefId());
+					$waiting_list->addToList($a_user_id);
+					$this->lng->loadLanguageModule("crs");
+					$info = sprintf($this->lng->txt('crs_added_to_list'),
+						$waiting_list->getPosition($a_user_id));
+					include_once('./Modules/Course/classes/class.ilCourseParticipants.php');
+					$participants = ilCourseParticipants::_getInstanceByObjId($this->getId());
+					$participants->sendNotification($participants->NOTIFY_WAITING_LIST,$a_user_id);
+
+					throw new ilMembershipRegistrationException($info, '124');
+				}
+
+				if(!$this->enabledWaitingList() && !$free)
+				{
+					throw new ilMembershipRegistrationException('Cant registrate to course '.$this->getId().
+						', membership is limited.', '123');
 				}
 			}
 		}

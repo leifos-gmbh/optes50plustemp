@@ -14,7 +14,7 @@ require_once 'Modules/Test/classes/class.ilTestPlayerAbstractGUI.php';
  * 
  * @author		Helmut Schottmüller <helmut.schottmueller@mac.com>
  * @author		Björn Heyser <bheyser@databay.de>
- * @version		$Id: class.ilTestPlayerDynamicQuestionSetGUI.php 56566 2014-12-18 09:04:57Z smeyer $
+ * @version		$Id: class.ilTestPlayerDynamicQuestionSetGUI.php 59801 2015-07-08 14:57:47Z bheyser $
  * 
  * @package		Modules/Test
  *
@@ -60,6 +60,8 @@ class ilTestPlayerDynamicQuestionSetGUI extends ilTestPlayerAbstractGUI
 		$this->ctrl->saveParameter($this, "sequence");
 		$this->ctrl->saveParameter($this, "active_id");
 
+		$this->initAssessmentSettings();
+
 		require_once 'Modules/Test/classes/class.ilObjTestDynamicQuestionSetConfig.php';
 		$this->dynamicQuestionSetConfig = new ilObjTestDynamicQuestionSetConfig($tree, $ilDB, $ilPluginAdmin, $this->object);
 		$this->dynamicQuestionSetConfig->loadFromDb();
@@ -71,7 +73,7 @@ class ilTestPlayerDynamicQuestionSetGUI extends ilTestPlayerAbstractGUI
 		$this->initProcessLocker($this->testSession->getActiveId());
 		
 		$testSequenceFactory = new ilTestSequenceFactory($ilDB, $lng, $ilPluginAdmin, $this->object);
-		$this->testSequence = $testSequenceFactory->getSequence($this->testSession);
+		$this->testSequence = $testSequenceFactory->getSequenceByTestSession($this->testSession);
 		$this->testSequence->loadFromDb();
 
 		include_once 'Services/jQuery/classes/class.iljQueryUtil.php';
@@ -103,7 +105,7 @@ class ilTestPlayerDynamicQuestionSetGUI extends ilTestPlayerAbstractGUI
 			case 'ilassquestionhintrequestgui':
 				
 				$questionGUI = $this->object->createQuestionGUI(
-					"", $this->testSequenceFactory->getSequence()->getQuestionForSequence( $this->calculateSequence() )
+					"", $this->testSequenceFactory->getSequenceByTestSession()->getQuestionForSequence( $this->calculateSequence() )
 				);
 
 				require_once 'Modules/TestQuestionPool/classes/class.ilAssQuestionHintRequestGUI.php';
@@ -563,7 +565,22 @@ class ilTestPlayerDynamicQuestionSetGUI extends ilTestPlayerAbstractGUI
 		$question_gui = $this->object->createQuestionGUI(
 				"", $this->testSession->getCurrentQuestionId()
 		);
-		
+
+		if( !is_object($question_gui) )
+		{
+			global $ilLog;
+
+			$ilLog->write(
+				"INV SEQ: active={$this->testSession->getActiveId()} qId={$this->testSession->getCurrentQuestionId()} "
+				.serialize($this->testSequence)
+			);
+
+			$ilLog->logStack('INV SEQ');
+
+			$this->resetCurrentQuestion();
+			$this->ctrl->redirect($this, 'showQuestion');
+		}
+
 		$question_gui->setTargetGui($this);
 		
 		$question_gui->setQuestionCount(
@@ -921,20 +938,25 @@ class ilTestPlayerDynamicQuestionSetGUI extends ilTestPlayerAbstractGUI
 
 		if ($this->canSaveResult($qId) || $force)
 		{
-				global $ilUser;
-				
-				$questionGUI = $this->object->createQuestionGUI("", $qId);
-				
-				if( $this->object->getJavaScriptOutput() )
-				{
-					$questionGUI->object->setOutputType(OUTPUT_JAVASCRIPT);
-				}
-				
-				$activeId = $this->testSession->getActiveId();
-				
-				$this->saveResult = $questionGUI->object->persistWorkingState(
-						$activeId, $pass = null, $this->object->areObligationsEnabled()
-				);
+			global $ilUser;
+			
+			$questionGUI = $this->object->createQuestionGUI("", $qId);
+			
+			if( $this->object->getJavaScriptOutput() )
+			{
+				$questionGUI->object->setOutputType(OUTPUT_JAVASCRIPT);
+			}
+			
+			$activeId = $this->testSession->getActiveId();
+			
+			$this->saveResult = $questionGUI->object->persistWorkingState(
+					$activeId, $pass = null, $this->object->areObligationsEnabled()
+			);
+
+			if( $this->object->isSkillServiceToBeConsidered() )
+			{
+				$this->handleSkillTriggering($this->testSession);
+			}
 		}
 		
 		if ($this->saveResult == FALSE)
@@ -1177,5 +1199,19 @@ class ilTestPlayerDynamicQuestionSetGUI extends ilTestPlayerAbstractGUI
 		$this->ctrl->setParameterByClass('ilTestEvaluationGUI', 'pass', $this->testSession->getPass());
 
 		return $this->ctrl->getLinkTargetByClass('ilTestEvaluationGUI', 'confirmDeletePass');
+	}
+	
+	protected function buildTestPassQuestionList()
+	{
+		global $ilPluginAdmin;
+
+		require_once 'Modules/TestQuestionPool/classes/class.ilAssQuestionList.php';
+		$questionList = new ilAssQuestionList($this->db, $this->lng, $ilPluginAdmin);
+
+		$questionList->setParentObjId($this->dynamicQuestionSetConfig->getSourceQuestionPoolId());
+
+		$questionList->setQuestionInstanceTypeFilter(ilAssQuestionList::QUESTION_INSTANCE_TYPE_ORIGINALS);
+
+		return $questionList;
 	}
 }

@@ -10,7 +10,7 @@ include_once("./Services/Style/classes/class.ilPageLayout.php");
 /**
 * Class ilObjSCORMLearningModuleGUI
 *
-* @author Alex Killing <alex.killing@gmx.de>, Hendrik Holtmann <holtmann@mac.com>
+* @author Alex Killing <alex.killing@gmx.de>, Hendrik Holtmann <holtmann@mac.com>, Uwe Kohnle <kohnle@internetlehrer-gmbh.de>
 * $Id: class.ilObjSCORMLearningModuleGUI.php 13133 2007-01-30 11:13:06Z akill $
 *
 * @ilCtrl_Calls ilObjSCORM2004LearningModuleGUI: ilFileSystemGUI, ilMDEditorGUI, ilPermissionGUI, ilLearningProgressGUI
@@ -175,6 +175,7 @@ class ilObjSCORM2004LearningModuleGUI extends ilObjSCORMLearningModuleGUI
 	 * left frame: explorer tree of folders
 	 * right frame: media pool content
 	 */
+	 // UK change possible
 	function frameset($a_to_organization = false)
 	{
 		if ($this->object->getEditable())	// show editing frameset
@@ -257,7 +258,7 @@ $this->ctrl->redirect($this, "properties");
 	 */
 	function properties()
 	{
-		global $rbacsystem, $tree, $tpl, $lng, $ilToolbar, $ilCtrl, $ilSetting;
+		global $rbacsystem, $tree, $tpl, $lng, $ilToolbar, $ilCtrl, $ilSetting, $ilTabs;
 
 		$this->setSubTabs("settings", "general_settings");
 		
@@ -266,14 +267,12 @@ $this->ctrl->redirect($this, "properties");
 		// not editable
 		if ($this->object->editable != 1)
 		{
+			ilObjSAHSLearningModuleGUI::setSettingsSubTabs();
+			$ilTabs->setSubTabActive('cont_settings');
 			// view
 			$ilToolbar->addButton($this->lng->txt("view"),
 				"ilias.php?baseClass=ilSAHSPresentationGUI&amp;ref_id=".$this->object->getRefID(),
 				"_blank");
-				
-			// upload new version
-			$ilToolbar->addButton($this->lng->txt("cont_sc_new_version"),
-				$this->ctrl->getLinkTarget($this, "newModuleVersion"));
 		}
 		else  	// editable
 		{
@@ -1067,503 +1066,107 @@ $this->ctrl->redirect($this, "properties");
 		$this->ctrl->redirect($this, "editStyleProperties");
 	}
 	
-/**
-* show tracking data
-*/
-protected function showTrackingItemsBySco()
-{
-	global $ilTabs;
+	/**
+	* show tracking data
+	*/
+	protected function showTrackingItemsBySco()
+	{
+		global $ilTabs;
 
 
-	ilObjSCORMLearningModuleGUI::setSubTabs();
-	$ilTabs->setTabActive("cont_tracking_data");
-	$ilTabs->setSubTabActive("cont_tracking_bysco");
+		ilObjSCORMLearningModuleGUI::setSubTabs();
+		$ilTabs->setTabActive("cont_tracking_data");
+		$ilTabs->setSubTabActive("cont_tracking_bysco");
 
-	$reports = array('exportSelectedCore','exportSelectedInteractions','exportSelectedObjectives','tracInteractionItem','tracInteractionUser','tracInteractionUserAnswers');
+		$reports = array('exportSelectedCore','exportSelectedInteractions','exportSelectedObjectives','tracInteractionItem','tracInteractionUser','tracInteractionUserAnswers');
 
-	$scoSelected = "all";
-	if (isset($_GET["scoSelected"])) $scoSelected = ilUtil::stripSlashes($_GET["scoSelected"]);
-	if (isset($_POST["scoSelected"])) $scoSelected = ilUtil::stripSlashes($_POST["scoSelected"]);
-	$this->ctrl->setParameter($this,'scoSelected',$scoSelected);
+		$scoSelected = "all";
+		if (isset($_GET["scoSelected"])) $scoSelected = ilUtil::stripSlashes($_GET["scoSelected"]);
+		if (isset($_POST["scoSelected"])) $scoSelected = ilUtil::stripSlashes($_POST["scoSelected"]);
+		$this->ctrl->setParameter($this,'scoSelected',$scoSelected);
 
-	$report = "choose";
-	if (isset($_GET["report"])) $report = ilUtil::stripSlashes($_GET["report"]);
-	if (isset($_POST["report"])) $report = ilUtil::stripSlashes($_POST["report"]);
-	$this->ctrl->setParameter($this,'report',$report);
+		$report = "choose";
+		if (isset($_GET["report"])) $report = ilUtil::stripSlashes($_GET["report"]);
+		if (isset($_POST["report"])) $report = ilUtil::stripSlashes($_POST["report"]);
+		$this->ctrl->setParameter($this,'report',$report);
 
-	include_once './Modules/Scorm2004/classes/class.ilSCORM2004TrackingItemsPerScoFilterGUI.php';
-	$filter = new ilSCORM2004TrackingItemsPerScoFilterGUI($this, 'showTrackingItemsBySco');
-	$filter->parse($scoSelected,$report,$reports);
-	if($report == "choose") {
-		$this->tpl->setContent($filter->form->getHTML());
-	} else {
-		$scosSelected = array();
-		if ($scoSelected != "all") $scosSelected[] = $scoSelected;
-		else {
+		include_once './Modules/Scorm2004/classes/class.ilSCORM2004TrackingItemsPerScoFilterGUI.php';
+		$filter = new ilSCORM2004TrackingItemsPerScoFilterGUI($this, 'showTrackingItemsBySco');
+		$filter->parse($scoSelected,$report,$reports);
+		if($report == "choose") {
+			$this->tpl->setContent($filter->form->getHTML());
+		} else {
+			$scosSelected = array();
+			if ($scoSelected != "all") $scosSelected[] = $scoSelected;
+			else {
+				$tmpscos=$this->object->getTrackedItems();
+				for ($i=0; $i<count($tmpscos); $i++) {
+					$scosSelected[] = $tmpscos[$i]["id"];
+				}
+			}
+			//with check for course ...
+			include_once "Services/Tracking/classes/class.ilTrQuery.php";
+			$a_users=ilTrQuery::getParticipantsForObject($this->ref_id);
+	//			var_dump($this->object->getTrackedUsers(""));
+			include_once './Modules/Scorm2004/classes/class.ilSCORM2004TrackingItemsTableGUI.php';
+			$tbl = new ilSCORM2004TrackingItemsTableGUI($this->object->getId(), $this, 'showTrackingItemsBySco', $a_users, $scosSelected, $report);
+			$this->tpl->setContent($filter->form->getHTML().$tbl->getHTML());
+		}
+		return true;
+	}
+	function showTrackingItems()
+	{
+		global $ilTabs;
+
+		ilObjSCORMLearningModuleGUI::setSubTabs();
+		$ilTabs->setTabActive('cont_tracking_data');
+		$ilTabs->setSubTabActive('cont_tracking_byuser');
+
+		$reports = array('exportSelectedSuccess','exportSelectedCore','exportSelectedInteractions','exportSelectedObjectives','exportObjGlobalToSystem');
+
+		$userSelected = "all";
+		if (isset($_GET["userSelected"])) $userSelected = ilUtil::stripSlashes($_GET["userSelected"]);
+		if (isset($_POST["userSelected"])) $userSelected = ilUtil::stripSlashes($_POST["userSelected"]);
+		$this->ctrl->setParameter($this,'userSelected',$userSelected);
+
+		$report = "choose";
+		if (isset($_GET["report"])) $report = ilUtil::stripSlashes($_GET["report"]);
+		if (isset($_POST["report"])) $report = ilUtil::stripSlashes($_POST["report"]);
+		$this->ctrl->setParameter($this,'report',$report);
+
+		include_once './Modules/Scorm2004/classes/class.ilSCORM2004TrackingItemsPerUserFilterGUI.php';
+		$filter = new ilSCORM2004TrackingItemsPerUserFilterGUI($this, 'showTrackingItems');
+		$filter->parse($userSelected,$report,$reports);
+		if($report == "choose") {
+			$this->tpl->setContent($filter->form->getHTML());
+		} else {
+			$usersSelected = array();
+			if ($userSelected != "all") $usersSelected[] = $userSelected;
+			else {
+				include_once "Services/Tracking/classes/class.ilTrQuery.php";
+				$users=ilTrQuery::getParticipantsForObject($this->ref_id);
+				foreach($users as $user) {
+					if(ilObject::_exists($user)  && ilObject::_lookUpType($user) == 'usr') {
+						$usersSelected[] = $user;
+					}
+				}
+			}
+			$scosSelected = array();
 			$tmpscos=$this->object->getTrackedItems();
 			for ($i=0; $i<count($tmpscos); $i++) {
 				$scosSelected[] = $tmpscos[$i]["id"];
 			}
+			//with check for course ...
+			// include_once "Services/Tracking/classes/class.ilTrQuery.php";
+			// $a_users=ilTrQuery::getParticipantsForObject($this->ref_id);
+	//			var_dump($this->object->getTrackedUsers(""));
+			include_once './Modules/Scorm2004/classes/class.ilSCORM2004TrackingItemsTableGUI.php';
+			$tbl = new ilSCORM2004TrackingItemsTableGUI($this->object->getId(), $this, 'showTrackingItems', $usersSelected, $scosSelected, $report);
+			$this->tpl->setContent($filter->form->getHTML().$tbl->getHTML());
 		}
-		//with check for course ...
-		include_once "Services/Tracking/classes/class.ilTrQuery.php";
-		$a_users=ilTrQuery::getParticipantsForObject($this->ref_id);
-//			var_dump($this->object->getTrackedUsers(""));
-		include_once './Modules/Scorm2004/classes/class.ilSCORM2004TrackingItemsTableGUI.php';
-		$tbl = new ilSCORM2004TrackingItemsTableGUI($this->object->getId(), $this, 'showTrackingItemsBySco', $a_users, $scosSelected, $report);
-		$this->tpl->setContent($filter->form->getHTML().$tbl->getHTML());
-	}
-	return true;
-}
-function showTrackingItems()
-{
-	global $ilTabs;
-
-	ilObjSCORMLearningModuleGUI::setSubTabs();
-	$ilTabs->setTabActive('cont_tracking_data');
-	$ilTabs->setSubTabActive('cont_tracking_byuser');
-
-	$reports = array('exportSelectedSuccess','exportSelectedCore','exportSelectedInteractions','exportSelectedObjectives','exportObjGlobalToSystem');
-
-	$userSelected = "all";
-	if (isset($_GET["userSelected"])) $userSelected = ilUtil::stripSlashes($_GET["userSelected"]);
-	if (isset($_POST["userSelected"])) $userSelected = ilUtil::stripSlashes($_POST["userSelected"]);
-	$this->ctrl->setParameter($this,'userSelected',$userSelected);
-
-	$report = "choose";
-	if (isset($_GET["report"])) $report = ilUtil::stripSlashes($_GET["report"]);
-	if (isset($_POST["report"])) $report = ilUtil::stripSlashes($_POST["report"]);
-	$this->ctrl->setParameter($this,'report',$report);
-
-	include_once './Modules/Scorm2004/classes/class.ilSCORM2004TrackingItemsPerUserFilterGUI.php';
-	$filter = new ilSCORM2004TrackingItemsPerUserFilterGUI($this, 'showTrackingItems');
-	$filter->parse($userSelected,$report,$reports);
-	if($report == "choose") {
-		$this->tpl->setContent($filter->form->getHTML());
-	} else {
-		$usersSelected = array();
-		if ($userSelected != "all") $usersSelected[] = $userSelected;
-		else {
-			include_once "Services/Tracking/classes/class.ilTrQuery.php";
-			$users=ilTrQuery::getParticipantsForObject($this->ref_id);
-			foreach($users as $user) {
-				if(ilObject::_exists($user)  && ilObject::_lookUpType($user) == 'usr') {
-					$usersSelected[] = $user;
-				}
-			}
-		}
-		$scosSelected = array();
-		$tmpscos=$this->object->getTrackedItems();
-		for ($i=0; $i<count($tmpscos); $i++) {
-			$scosSelected[] = $tmpscos[$i]["id"];
-		}
-		//with check for course ...
-		// include_once "Services/Tracking/classes/class.ilTrQuery.php";
-		// $a_users=ilTrQuery::getParticipantsForObject($this->ref_id);
-//			var_dump($this->object->getTrackedUsers(""));
-		include_once './Modules/Scorm2004/classes/class.ilSCORM2004TrackingItemsTableGUI.php';
-		$tbl = new ilSCORM2004TrackingItemsTableGUI($this->object->getId(), $this, 'showTrackingItems', $usersSelected, $scosSelected, $report);
-		$this->tpl->setContent($filter->form->getHTML().$tbl->getHTML());
-	}
-	return true;
-}
-	/*OLD
-function modifyTrackingItems()
-{
-	include_once('./Services/PrivacySecurity/classes/class.ilPrivacySettings.php');
-	$privacy = ilPrivacySettings::_getInstance();
-	if (!$privacy->enabledSahsProtocolData())
-	{
-		$this->ilias->raiseError($this->lng->txt('permission_denied'), $this->ilias->error_obj->MESSAGE);
+		return true;
 	}
 
-	global $ilTabs, $ilToolbar;
-	
-	include_once './Services/UIComponent/Toolbar/classes/class.ilToolbarGUI.php';
-	$ilToolbar->addButton(
-		$this->lng->txt('import'),
-		$this->ctrl->getLinkTarget($this, 'importForm')
-	);
-	$ilToolbar->addButton(
-		$this->lng->txt('cont_export_all'),
-		$this->ctrl->getLinkTarget($this, 'exportSelectionAll')
-	);
-
-	$this->setSubTabs();
-//	ilObjSCORMLearningModuleGUI::setSubTabs();
-	$ilTabs->setTabActive('cont_tracking_data');
-	$ilTabs->setSubTabActive('cont_tracking_modify');
-
-	include_once './Modules/ScormAicc/classes/class.ilSCORMTrackingUsersTableGUI.php';
-	$tbl = new ilSCORMTrackingUsersTableGUI($this->object->getId(), $this, 'showtrackingItems');
-	$tbl->parse();
-	$this->tpl->setContent($tbl->getHTML());
-
-	
-	include_once "./Services/Table/classes/class.ilTableGUI.php";
-	include_once './Services/UIComponent/Toolbar/classes/class.ilToolbarGUI.php';
-
-	
-	//set search
-	
-	if ($_POST["search_string"] != "")
-	{
-		$_SESSION["scorm_search_string"] = trim($_POST["search_string"]);
-	} else 	if (isset($_POST["search_string"]) && $_POST["search_string"] == "") {
-		unset($_SESSION["scorm_search_string"]);
-	}
-
-	// load template for search additions
-	$this->tpl->addBlockfile("ADM_CONTENT", "adm_content", "tpl_scorm_track_items_search.html","Modules/ScormAicc");
-	// load template for table
-	$this->tpl->addBlockfile("USR_TABLE", "usr_table", "tpl.table.html");
-	// load template for table content data
-	$this->tpl->addBlockfile("TBL_CONTENT", "tbl_content", "tpl.scorm_track_items.html", "Modules/ScormAicc");
-
-	$num = 5;
-
-	$this->tpl->setVariable("FORMACTION", $this->ctrl->getFormAction($this));
-
-	// create table
-	$tbl = new ilTableGUI();
-	
-	ilObjSCORMLearningModuleGUI::setSubTabs();
-	$ilTabs->setTabActive('cont_tracking_data');
-	$ilTabs->setSubTabActive('cont_tracking_modify');
-	// title & header columns
-	if (isset($_SESSION["scorm_search_string"])) {
-		$tbl->setTitle($this->lng->txt("cont_tracking_items").' - Aktive Suche: "'.$_SESSION["scorm_search_string"].'"');
-	} else {
-		$tbl->setTitle($this->lng->txt("cont_tracking_items"));
-	}
-	
-	$tbl->setHeaderNames(array("",$this->lng->txt("name"), $this->lng->txt("last_access"), $this->lng->txt("attempts"), $this->lng->txt("version")  ));
-
-
-	$header_params = $this->ctrl->getParameterArray($this, "showTrackingItems");
-			
-	$tbl->setColumnWidth(array("1%", "50%", "29%", "10%","10%"));
-		
-	$cols = array("user_id","username","last_access","attempts","version");
-	$tbl->setHeaderVars($cols, $header_params);
-
-	//set defaults
-	$_GET["sort_order"] = $_GET["sort_order"] ? $_GET["sort_order"] : "asc";
-	$_GET["sort_by"] = $_GET["sort_by"] ? $_GET["sort_by"] : "username";
-
-	// control
-	$tbl->setOrderColumn($_GET["sort_by"]);
-	$tbl->setOrderDirection($_GET["sort_order"]);
-	$tbl->setLimit($_GET["limit"]);
-	$tbl->setOffset($_GET["offset"]);
-	$tbl->setMaxCount($this->maxcount);
-	
-	$this->tpl->setVariable("COLUMN_COUNTS", 5);
-	
-	// delete button
-	$this->tpl->setVariable("IMG_ARROW", ilUtil::getImagePath("arrow_downright.svg"));
-	$this->tpl->setCurrentBlock("tbl_action_btn");
-	$this->tpl->setVariable("BTN_NAME", "deleteTrackingForUser");
-	$this->tpl->setVariable("BTN_VALUE", $this->lng->txt("delete"));
-	$this->tpl->parseCurrentBlock();
-	
-	// decrease attempts
-	$this->tpl->setCurrentBlock("tbl_action_btn");
-	$this->tpl->setVariable("BTN_NAME", "decreaseAttempts");
-	$this->tpl->setVariable("BTN_VALUE", $this->lng->txt("decrease_attempts"));
-	$this->tpl->parseCurrentBlock();
-	
-	// export aggregated data for selected users
-	$this->tpl->setCurrentBlock("tbl_action_btn");
-	$this->tpl->setVariable("BTN_NAME", "exportSelected");
-	$this->tpl->setVariable("BTN_VALUE",  $this->lng->txt("export"));
-	$this->tpl->parseCurrentBlock();
-		
-	// add search and export all
-	// export aggregated data for all users
-	$this->tpl->setVariable("EXPORT_ACTION",$this->ctrl->getFormAction($this));
-	
-	$this->tpl->setVariable("EXPORT_ALL_VALUE", $this->lng->txt('cont_export_all'));
-	$this->tpl->setVariable("EXPORT_ALL_NAME", "exportAll");
-	$this->tpl->setVariable("IMPORT_VALUE", $this->lng->txt('import'));
-	$this->tpl->setVariable("IMPORT_NAME", "Import");
-	
-	$this->tpl->setVariable("SEARCH_TXT_SEARCH",$this->lng->txt('search'));
-	$this->tpl->setVariable("SEARCH_ACTION",$this->ctrl->getFormAction($this));
-	$this->tpl->setVariable("SEARCH_NAME",'showTrackingItems');
-	if (isset($_SESSION["scorm_search_string"])) {
-		$this->tpl->setVariable("STYLE",'display:inline;');
-	} else {
-		$this->tpl->setVariable("STYLE",'display:none;');
-	}
-	$this->tpl->setVariable("SEARCH_VAL", 	$_SESSION["scorm_search_string"]);
-	$this->tpl->setVariable("SEARCH_VALUE",$this->lng->txt('search_users'));
-	$this->tpl->parseCurrentBlock();
-	
-	// footer
-	$tbl->setFooter("tblfooter",$this->lng->txt("previous"),$this->lng->txt("next"));
-
-	$items = $this->object->getTrackedUsers($_SESSION["scorm_search_string"]);
-
-	$tbl->setMaxCount(count($items));
-	$items  = ilUtil::sortArray($items ,$_GET["sort_by"],$_GET["sort_order"]);
-	$items = array_slice($items, $_GET["offset"], $_GET["limit"]);
-
-	$tbl->render();
-	
-	if (count($items) > 0)
-	{
-		foreach ($items as $item)
-		{
-			if (ilObject::_exists($item["user_id"])  && ilObject::_lookUpType($item["user_id"])=="usr") 
-			{
-				$user = new ilObjUser($item["user_id"]);
-				$this->tpl->setCurrentBlock("tbl_content");
-				$this->tpl->setVariable("VAL_USERNAME", $item["username"]);
-				$this->tpl->setVariable("VAL_LAST", ilDatePresentation::formatDate(new ilDateTime($item["last_access"],IL_CAL_DATETIME)));
-				$this->tpl->setVariable("VAL_ATTEMPT", $item["attempts"]);
-				$this->tpl->setVariable("VAL_VERSION", $item['version']);
-				$this->ctrl->setParameter($this, "user_id", $item["user_id"]);
-				$this->ctrl->setParameter($this, "obj_id", $_GET["obj_id"]);
-				$this->tpl->setVariable("LINK_ITEM",
-				$this->ctrl->getLinkTarget($this, "showTrackingItem"));
-				$this->tpl->setVariable("CHECKBOX_ID", $item["user_id"]);
-				$css_row = ilUtil::switchColor($i++, "tblrow1", "tblrow2");
-				$this->tpl->setVariable("CSS_ROW", $css_row);
-				$this->tpl->parseCurrentBlock();
-			}
-		}
-		$this->tpl->setCurrentBlock("selectall");
-		$this->tpl->setVariable("SELECT_ALL", $this->lng->txt("select_all"));
-		$this->tpl->setVariable("CSS_ROW", $css_row);
-		$this->tpl->parseCurrentBlock();
-		
-	} //if is_array
-	else
-	{
-		$this->tpl->setCurrentBlock("notfound");
-		$this->tpl->setVariable("TXT_OBJECT_NOT_FOUND", $this->lng->txt("obj_not_found"));
-		$this->tpl->setVariable("NUM_COLS", $num);
-		$this->tpl->parseCurrentBlock();
-	}
-	
-}
-*/
-
-function exportAll(){
-	$this->object->exportSelected(1);
-}
-
-function exportSelected()
-{
-	if (!isset($_POST["user"]))
-	{
-		ilUtil::sendInfo($this->lng->txt("no_checkbox"),true);
-		$this->ctrl->redirect($this, "showTrackingItems");
-	} else {
-		$this->object->exportSelected(0,$_POST["user"]);
-	}
-}
-
-function export($a_export_all = 0)
-{	
-	if (!isset($_POST["export_type"])) {
-		//show form
-		$this->exportOptions($a_export_all,$_POST["user"]);
-	} else {
-		if (isset($_POST["cancel"])) {
-			$this->ctrl->redirect($this, "showTrackingItems");
-		} else {
-			$a_export_all = $_POST["export_all"];
-			if ($a_export_all == 0) {
-				$export_type = $_POST["export_type"];
-				$a_user = unserialize(stripslashes($_POST["user"]));
-				if ($export_type == "core") $this->object->exportSelectedCore($a_user);
-				else if ($export_type == "interactions") $this->object->exportSelectedInteractions($a_user);
-				else if ($export_type == "objectives") $this->object->exportSelectedObjectives($a_user);
-				else if ($export_type == "forImport") $this->object->exportSelected($a_user);
-				else $this->object->exportSelectedSuccess($a_user);
-			}
-			else $this->object->exportAll($_POST["export_type"]);
-		}
-	}
-}
-
-function exportOptionsTMP($a_export_all=0, $a_users)
-{
-	$obj_id = ilObject::_lookupObjectId($_GET['ref_id']);
-	$type = ilObjSAHSLearningModule::_lookupSubType($obj_id);
-
-	// display import form
-	$this->tpl->addBlockFile("ADM_CONTENT", "adm_content", "tpl.scorm_tracking_data_export.html", "Modules/Scorm2004");
-
-	$this->tpl->setVariable("TYPE_IMG",ilUtil::getImagePath('icon_slm.gif'));
-	$this->tpl->setVariable("ALT_IMG", $this->lng->txt("obj_sahs"));
-
-	$this->tpl->setVariable("TXT_EXPORT", $this->lng->txt("cont_export_options"));
-
-	$this->ctrl->setParameter($this, "new_type", "sahs");
-	$this->tpl->setVariable("FORMACTION", $this->ctrl->getFormAction($this));
-
-	$this->tpl->setVariable("BTN_NAME", "export");
-
-	$this->tpl->setVariable("TARGET", ' target="'.
-		ilFrameTargetInfo::_getFrame("MainContent").'" ');
-
-	$this->tpl->setVariable("TXT_SELECT_TYPE", $this->lng->txt("cont_export_type"));
-	$this->tpl->setVariable("TXT_EXPORT_FORIMPORT", $this->lng->txt("cont_export_for_import"));
-	$this->tpl->setVariable("TXT_EXPORT_SUCCESS", $this->lng->txt("cont_export_success"));
-	$this->tpl->setVariable("TXT_EXPORT_CORE", $this->lng->txt("exportSCOdataCore"));
-	$this->tpl->setVariable("TXT_EXPORT_INTERACTIONS", $this->lng->txt("exportSCOdataInteractions"));
-	$this->tpl->setVariable("TXT_EXPORT_OBJECTIVES", $this->lng->txt("exportSCOdataObjectives"));
-	$this->tpl->setVariable("TXT_EXPORT_TRACKING", $this->lng->txt("cont_export_tracking"));
-
-	$this->tpl->setVariable("TXT_EXPORT", $this->lng->txt("export"));
-	$this->tpl->setVariable("TXT_CANCEL", $this->lng->txt("cancel"));
-	$this->tpl->setVariable("VAL_USER", htmlentities(serialize($a_users)));
-	$this->tpl->setVariable("VAL_EXPORTALL",$a_export_all);
-}
-
-/**
-* show tracking data of item
-*/
-function showTrackingItem()
-{
-
-	include_once "./Services/Table/classes/class.ilTableGUI.php";
-
-	// load template for table
-	$this->tpl->addBlockfile("ADM_CONTENT", "adm_content", "tpl.table.html");
-	// load template for table content data
-	$this->tpl->addBlockfile("TBL_CONTENT", "tbl_content", "tpl.scorm2004_track_item.html", "Modules/Scorm2004");
-
-	$num = 2;
-
-	$this->tpl->setVariable("FORMACTION", "adm_object.php?ref_id=".$this->ref_id."$obj_str&cmd=gateway");
-
-	// create table
-	$tbl = new ilTableGUI();
-
-	include_once("./Modules/ScormAicc/classes/SCORM/class.ilSCORMItem.php");
-	$sc_item =& new ilSCORMItem($_GET["obj_id"]);
-
-	// title & header columns
-	$user = new ilObjUser( $_GET["user_id"]);
-	$tbl->setTitle($user->getLastname().", ".$user->getFirstname());
-
-	$tbl->setHeaderNames(array($this->lng->txt("title"),
-		$this->lng->txt("cont_status"), $this->lng->txt("cont_time"),
-		$this->lng->txt("cont_score")));
-
-	$header_params = array("ref_id" => $this->ref_id, "cmd" => $_GET["cmd"],
-		"cmdClass" => get_class($this), "obj_id" => $_GET["obj_id"], "baseClass"=>"ilSAHSEditGUI", 'user_id'=>$_GET["user_id"]);
-	
-	$cols = array("title", "status", "time", "score");
-	$tbl->setHeaderVars($cols, $header_params);
-	//$tbl->setColumnWidth(array("25%",));
-
-	// control
-	$tbl->setOrderColumn($_GET["sort_by"]);
-	$tbl->setOrderDirection($_GET["sort_order"]);
-	$tbl->setLimit($_GET["limit"]);
-	$tbl->setOffset($_GET["offset"]);
-	$tbl->setMaxCount($this->maxcount);
-
-	//$this->tpl->setVariable("COLUMN_COUNTS",count($this->data["cols"]));
-	//$this->showActions(true);
-
-	// footer
-	$tbl->setFooter("tblfooter",$this->lng->txt("previous"),$this->lng->txt("next"));
-	#$tbl->disable("footer");
-
-	$tr_data = $this->object->getTrackingDataAgg($_GET["user_id"]);
-
-	//$objs = ilUtil::sortArray($objs, $_GET["sort_by"], $_GET["sort_order"]);
-	$tbl->setMaxCount(count($tr_data));
-	$tr_data = array_slice($tr_data, $_GET["offset"], $_GET["limit"]);
-
-	$tbl->render();
-
-	if (count($tr_data) > 0)
-	{
-		foreach ($tr_data as $data)
-		{
-				$this->tpl->setCurrentBlock("tbl_content");
-				$this->tpl->setVariable("VAL_TITLE", $data["title"]);
-				$this->ctrl->setParameter($this, "user_id",  $_GET["user_id"]);
-				$this->ctrl->setParameter($this, "obj_id",  $data["sco_id"]);
-				
-				$this->tpl->setVariable("LINK_SCO",
-					$this->ctrl->getLinkTarget($this, "showTrackingItemPerUser"));
-				$this->tpl->setVariable("VAL_TIME", $data["time"]);
-				$this->tpl->setVariable("VAL_STATUS", $data["status"]);
-				$this->tpl->setVariable("VAL_SCORE", $data["score"]);
-
-				$css_row = ilUtil::switchColor($i++, "tblrow1", "tblrow2");
-				$this->tpl->setVariable("CSS_ROW", $css_row);
-				$this->tpl->parseCurrentBlock();
-		
-		}
-	} //if is_array
-	else
-	{
-		$this->tpl->setCurrentBlock("notfound");
-		$this->tpl->setVariable("TXT_OBJECT_NOT_FOUND", $this->lng->txt("obj_not_found"));
-		$this->tpl->setVariable("NUM_COLS", $num);
-		$this->tpl->parseCurrentBlock();
-	}
-}
-
-
-/**
-	* display deletion confirmation screen
-	*/
-	function deleteTrackingForUser()
-	{
-		if(!isset($_POST["user"]))
-		{
-			$this->ilias->raiseError($this->lng->txt("no_checkbox"),$this->ilias->error_obj->MESSAGE);
-		}
-		
-		// display confirmation message
-		include_once("./Services/Utilities/classes/class.ilConfirmationGUI.php");
-		$cgui = new ilConfirmationGUI();
-		$cgui->setFormAction($this->ctrl->getFormAction($this));
-		$cgui->setHeaderText($this->lng->txt("info_delete_sure"));
-		$cgui->setCancel($this->lng->txt("cancel"), "cancelDeleteTracking");
-		$cgui->setConfirm($this->lng->txt("confirm"), "confirmedDeleteTracking");
-		
-		foreach($_POST["user"] as $id)
-		{
-			if (ilObject::_exists($id) && ilObject::_lookUpType($id)=="usr" )
-			{	
-				$user = new ilObjUser($id);
-				
-				$caption = ilUtil::getImageTagByType("sahs", $this->tpl->tplPath).
-					" ".$this->lng->txt("cont_tracking_data").
-					": ".$user->getLastname().", ".$user->getFirstname();
-				
-				
-				$cgui->addItem("user[]", $id, $caption);
-			}	
-		}
-
-		$this->tpl->setContent($cgui->getHTML());
-	}
-	
-	function resetSearch() {
-		unset($_SESSION["scorm_search_string"]);
-		$this->ctrl->redirect($this, "showTrackingItems");
-	}
-	
-	/**
-	* cancel deletion of export files
-	*/
-	function cancelDeleteTracking()
-	{
-		ilUtil::sendInfo($this->lng->txt("msg_cancel"),true);
-		$this->ctrl->redirect($this, "showTrackingItems");
-	}
 	
 	/**
 	* Confirmed tracking deletion
@@ -1580,20 +1183,20 @@ function showTrackingItem()
 			ilLPStatusWrapper::_updateStatus($this->object->getId(), $user);
 	 	}
 
-	 	$this->ctrl->redirect($this, "showTrackingItems");
+	 	$this->ctrl->redirect($this, "modifyTrackingItems");
 	}
 	
-	
+	//UK may be erased
 	function deleteTrackingData()
 	{
 		if (is_array($_POST["id"]))
 		{
 			$this->object->deleteTrackingDataOfUsers($_POST["id"]);
 		}
-		$this->showTrackingItems();
+		$this->modifyTrackingItems();
 	}
 
-		/**
+	/**
 	 * Show Editing Tree
 	 */
 	function showTree()

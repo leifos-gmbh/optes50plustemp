@@ -14,7 +14,7 @@ require_once("./Services/Xml/classes/class.ilNestedSetXML.php");
 * @author Alex Killing <alex.killing@gmx.de>
 * @author Sascha Hofmann <saschahofmann@gmx.de>
 *
-* @version $Id: class.ilObjContentObject.php 56504 2014-12-17 10:21:06Z bheyser $
+* @version $Id: class.ilObjContentObject.php 57673 2015-01-30 12:51:51Z smeyer $
 *
 * @ingroup ModulesIliasLearningModule
 */
@@ -3239,7 +3239,7 @@ class ilObjContentObject extends ilObject
 		}
 		
 		// copy content
-		$this->copyAllPagesAndChapters($new_obj);
+		$this->copyAllPagesAndChapters($new_obj, $a_copy_id);
 
 		// Copy learning progress settings
 		include_once('Services/Tracking/classes/class.ilLPObjSettings.php');
@@ -3260,7 +3260,7 @@ class ilObjContentObject extends ilObject
 	 *
 	 * @param object $a_target_obj target learning module
 	 */
-	function copyAllPagesAndChapters($a_target_obj)
+	function copyAllPagesAndChapters($a_target_obj, $a_copy_id = 0)
 	{
 		$parent_id = $a_target_obj->lm_tree->readRootId();
 		
@@ -3290,6 +3290,17 @@ class ilObjContentObject extends ilObject
 			}
 		}
 		
+		// Add mapping for pages and chapters
+		include_once './Services/CopyWizard/classes/class.ilCopyWizardOptions.php';
+		$options = ilCopyWizardOptions::_getInstance($a_copy_id);
+		foreach($copied_nodes as $old_id => $new_id)
+		{
+			$options->appendMapping(
+				$this->getRefId().'_'.$old_id,
+				$a_target_obj->getRefId().'_'.$new_id
+			);
+		}
+
 		ilLMObject::updateInternalLinks($copied_nodes);
 
 		$a_target_obj->checkTree();

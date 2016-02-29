@@ -10,7 +10,7 @@ require_once("Services/MetaData/classes/class.ilMDLanguageItem.php");
 * Base class for ilStructureObjects and ilPageObjects (see ILIAS DTD)
 *
 * @author Alex Killing <alex.killing@gmx.de>
-* @version $Id: class.ilLMObject.php 54018 2014-10-05 10:58:43Z akill $
+* @version $Id: class.ilLMObject.php 57665 2015-01-30 10:49:28Z smeyer $
 *
 * @ingroup ModulesIliasLearningModule
 */
@@ -1508,11 +1508,13 @@ class ilLMObject
 		
 		if ($a_node["type"] == "st")
 		{
+			include_once './Modules/LearningModule/classes/class.ilStructureObject.php';
 			return ilStructureObject::_getPresentationTitle($a_node["child"],
 				$a_include_numbers, $a_time_scheduled_activation, $a_lm_id, $a_lang);
 		}
 		else
 		{
+			include_once './Modules/LearningModule/classes/class.ilLMPageObject.php';
 			return ilLMPageObject::_getPresentationTitle($a_node["child"],
 				$a_mode, $a_include_numbers, $a_time_scheduled_activation,
 				$a_force_content, $a_lm_id, $a_lang);

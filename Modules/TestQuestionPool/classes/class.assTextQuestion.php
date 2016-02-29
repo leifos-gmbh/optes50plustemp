@@ -15,7 +15,7 @@ require_once './Modules/TestQuestionPool/interfaces/interface.ilObjAnswerScoring
  * @author	Björn Heyser <bheyser@databay.de>
  * @author	Maximilian Becker <mbecker@databay.de>
  *          
- * @version		$Id: class.assTextQuestion.php 55306 2014-11-19 09:02:42Z bheyser $
+ * @version		$Id: class.assTextQuestion.php 57331 2015-01-22 10:14:28Z jluetzen $
  * 
  * @ingroup		ModulesTestQuestionPool
  */
@@ -137,10 +137,7 @@ class assTextQuestion extends assQuestion implements ilObjQuestionScoringAdjusta
 			$this->setOriginalId($data["original_id"]);
 			$this->setNrOfTries($data['nr_of_tries']);
 			$this->setAuthor($data["author"]);
-			if(0 != (int)$data["points"])
-			{
-				$this->setPoints($data["points"]);
-			}
+			$this->setPoints((float) $data["points"]);
 			$this->setOwner($data["owner"]);
 			include_once("./Services/RTE/classes/class.ilRTE.php");
 			$this->setQuestion(ilRTE::_replaceMediaObjectImageSrc($data["question_text"], 1));

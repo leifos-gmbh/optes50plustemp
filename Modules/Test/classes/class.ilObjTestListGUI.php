@@ -6,7 +6,7 @@
 *
 * @author		Helmut Schottmueller <helmut.schottmueller@mac.com>
 * @author		Alex Killing <alex.killing@gmx.de>
-* $Id: class.ilObjTestListGUI.php 57114 2015-01-14 12:06:58Z bheyser $
+* $Id: class.ilObjTestListGUI.php 57641 2015-01-29 12:49:22Z smeyer $
 *
 * @extends ilObjectListGUI
 * @ingroup ModulesTest
@@ -169,13 +169,20 @@ class ilObjTestListGUI extends ilObjectListGUI
 	
 	private function handleUserResultsCommand($commands)
 	{
+		global $ilUser;
+		
 		if( !$this->isObjectiveTest() )
 		{
 			$commands = $this->removeUserResultsCommand($commands);
 		}
-		elseif( !$this->visibleUserResultsExists() )
+		else
 		{
-			$commands = $this->removeUserResultsCommand($commands);
+			require_once 'Modules/Test/classes/class.ilObjTestAccess.php';
+			
+			if( !ilObjTestAccess::visibleUserResultExists($this->obj_id, $ilUser->getId()) )
+			{
+				$commands = $this->removeUserResultsCommand($commands);
+			}
 		}
 		
 		return $commands;
@@ -185,22 +192,6 @@ class ilObjTestListGUI extends ilObjectListGUI
 	{
 		require_once 'Modules/Course/classes/Objectives/class.ilLOSettings.php';
 		return ilLOSettings::isObjectiveTest($this->ref_id);
-	}
-	
-	private function visibleUserResultsExists()
-	{
-		$testOBJ = ilObjectFactory::getInstanceByObjId($this->obj_id, false);
-		
-		if( !($testOBJ instanceof ilObjTest) )
-		{
-			return false;
-		}
-
-		require_once 'Modules/Test/classes/class.ilTestSessionFactory.php';
-		$testSessionFactory = new ilTestSessionFactory($testOBJ);
-		$testSession = $testSessionFactory->getSession();
-
-		return $testOBJ->canShowTestResults($testSession);
 	}
 
 	private function removeUserResultsCommand($commands)
@@ -245,9 +236,6 @@ class ilObjTestListGUI extends ilObjectListGUI
 	// begin-patch lok
 	protected function modifyTitleLink($a_default_link)
 	{
-		return parent::modifyTitleLink($a_default_link);
-		
-		/*
 		include_once './Modules/Course/classes/Objectives/class.ilLOSettings.php';
 		$id = ilLOSettings::isObjectiveTest($this->ref_id);
 		
@@ -265,7 +253,6 @@ class ilObjTestListGUI extends ilObjectListGUI
 			$this->ctrl->clearParametersByClass('ilrepositorygui');
 		}
 		return parent::modifyTitleLink($cmd_link);
-		 */
 	}
 	// end-patch lok
 

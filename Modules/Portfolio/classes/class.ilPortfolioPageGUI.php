@@ -23,6 +23,8 @@ class ilPortfolioPageGUI extends ilPageObjectGUI
 	protected $additional = array();
 	protected $export_material = array("js"=>array(), "images"=>array(), "files"=>array());
 	
+	protected static $initialized = 0;
+	
 	
 	/**
 	 * Constructor
@@ -202,18 +204,35 @@ class ilPortfolioPageGUI extends ilPageObjectGUI
 			
 			// patch optes start
 			
-			"MyCourses" => array("0-9", "a-z"),  // user, sort
-			"MyCoursesTeaser" => array("0-9", "a-z")  // user, sort
+			"MyCourses" => array("0-9", "a-z*"),  // user, sort
+			"MyCoursesTeaser" => array("0-9", "a-z*")  // user, sort
 			
 			// patch optes end
 			);
 			
 		foreach($parts as $type => $def)
 		{			
-			$def = implode("]+)#([", $def);					
-			if(preg_match_all("/".$this->pl_start.$type."#([".$def.
-					"]+)".$this->pl_end."/", $a_output, $blocks))
+			// #15732 - allow optional parts
+			$parts = array();
+			foreach($def as $part)
 			{
+				if(substr($part, -1) != "*")
+				{
+					$end_marker = "+";
+				}
+				else
+				{
+					$end_marker = "*";
+					$part = substr($part, 0, -1);
+				}
+				$parts[] = "([".$part."]".$end_marker.")";			
+			}						
+			$def = implode("#", $parts);	
+			
+			if(preg_match_all(
+				"/".$this->pl_start.$type."#".$def.$this->pl_end."/", 
+				$a_output, $blocks))
+			{											
 				foreach($blocks[0] as $idx => $block)
 				{
 					switch($type)
@@ -622,7 +641,7 @@ class ilPortfolioPageGUI extends ilPageObjectGUI
 		
 		if($this->getOutputMode() == "preview")
 		{	
-			return $this->renderMyCoursesTeaser($a_user_id);
+			return $this->renderMyCoursesTeaser($a_user_id, $a_default_sorting);
 		}
 		
 		if(!$this->isMyCoursesActive())
@@ -721,9 +740,13 @@ class ilPortfolioPageGUI extends ilPageObjectGUI
 					$tpl->parseCurrentBlock();	
 				}
 				
-				$do_links = $ilAccess->checkAccessOfUser($ilUser->getId(), "read", "", $course["ref_id"], "crs") ||
-					($ilAccess->checkAccessOfUser($ilUser->getId(), "visible", "", $course["ref_id"], "crs") &&
-					$ilAccess->checkAccessOfUser($ilUser->getId(), "join", "", $course["ref_id"], "crs"));
+				$do_links = false;
+				if($ilUser->getId() != ANONYMOUS_USER_ID)
+				{
+					$do_links = $ilAccess->checkAccessOfUser($ilUser->getId(), "read", "", $course["ref_id"], "crs") ||
+						($ilAccess->checkAccessOfUser($ilUser->getId(), "visible", "", $course["ref_id"], "crs") &&
+						$ilAccess->checkAccessOfUser($ilUser->getId(), "join", "", $course["ref_id"], "crs"));
+				}
 				
 				if(isset($course["objectives"]))
 				{
@@ -734,16 +757,19 @@ class ilPortfolioPageGUI extends ilPageObjectGUI
 					foreach($course["objectives"] as $objtv)
 					{		
 						if($do_links)
-						{
+						{														
 							$params = array("oobj"=>$objtv["id"]);
 							$url = ilLink::_getLink($course["ref_id"], "crs", $params);
+							
+							// #15510
+							$url .= "#objtv_acc_".$objtv["id"];
 							
 							$tpl->setCurrentBlock("objective_link_bl");
 							
 							if(trim($objtv["desc"]))
 							{
 								$desc = nl2br($objtv["desc"]);
-								$tt_id = "objtvtt_".$objtv["id"];
+								$tt_id = "objtvtt_".$objtv["id"]."_".((int)self::$initialized);
 								
 								include_once "Services/UIComponent/Tooltip/classes/class.ilTooltipGUI.php";
 								ilToolTipGUI::addTooltip($tt_id, $desc, "", "bottom center", "top center", false);
@@ -775,7 +801,7 @@ class ilPortfolioPageGUI extends ilPageObjectGUI
 						if($objtv["type"])
 						{
 							$tpl->setVariable("LP_OBJTV_PROGRESS", 
-								ilContainerObjectiveGUI::buildObjectiveProgressBar($has_initial_test, $objtv["id"], $objtv, true));
+								ilContainerObjectiveGUI::buildObjectiveProgressBar($has_initial_test, $objtv["id"], $objtv, true, (int)self::$initialized));
 						}
 						
 						$tpl->parseCurrentBlock();	
@@ -823,8 +849,13 @@ class ilPortfolioPageGUI extends ilPageObjectGUI
 				$tpl->parseCurrentBlock();						
 			}
 			
-			$GLOBALS["tpl"]->addJavaScript("Modules/Portfolio/js/ilPortfolio.js");
-			$GLOBALS["tpl"]->addOnLoadCode("ilPortfolio.init()");
+			// #15508
+			if(!self::$initialized)
+			{
+				$GLOBALS["tpl"]->addJavaScript("Modules/Portfolio/js/ilPortfolio.js");
+				$GLOBALS["tpl"]->addOnLoadCode("ilPortfolio.init()");				
+			}
+			self::$initialized++;
 			
 			return $tpl->get();					
 		}					
@@ -902,7 +933,18 @@ class ilPortfolioPageGUI extends ilPageObjectGUI
 		
 		if(sizeof($lp_obj_refs))
 		{
-			// lp must be active, personal and not anonymized
+			// listing the objectives should NOT depend on any LP status / setting
+			include_once 'Modules/Course/classes/class.ilObjCourse.php';
+			foreach($lp_obj_refs as $obj_id => $ref_id)
+			{
+				// only if set in DB (default mode is not relevant
+				if(ilObjCourse::_lookupViewMode($obj_id) == IL_CRS_VIEW_OBJECTIVE)
+				{					
+					$references[$ref_id]["objectives"] = $this->parseObjectives($obj_id, $a_user_id);					
+				}				
+			}			
+			
+			// LP must be active, personal and not anonymized
 			include_once "Services/Tracking/classes/class.ilObjUserTracking.php";
 			if (ilObjUserTracking::_enabledLearningProgress() &&
 				ilObjUserTracking::_enabledUserRelatedData() &&
@@ -915,58 +957,69 @@ class ilPortfolioPageGUI extends ilPageObjectGUI
 				foreach($lp_data as $item)
 				{
 					$ref_id = $item["ref_ids"];
-					$references[$ref_id]["lp_status"] = $item["status"];							
-					
-					// add objectives
-					if($item["u_mode"] == ilLPObjSettings::LP_MODE_OBJECTIVES)
-					{					
-						// we need the collection for the correct order
-						include_once "Services/Tracking/classes/collection/class.ilLPCollectionOfObjectives.php";
-						$coll_objtv = new ilLPCollectionOfObjectives($item["obj_id"], $item["u_mode"]);
-						$coll_objtv = $coll_objtv->getItems();
-						if($coll_objtv)
-						{
-							// #13373
-							$lo_results = $this->parseLOUserResults($item["obj_id"], $a_user_id);
-																			
-							$tmp = array();
-							
-							include_once "Modules/Course/classes/class.ilCourseObjective.php";
-							foreach($coll_objtv as $objective_id)
-							{			
-								// patch optes start
-								
-								$title = ilCourseObjective::lookupObjectiveTitle($objective_id, true);
-								
-								$tmp[$objective_id] = array(
-									"id" => $objective_id,
-									"title" => $title["title"],
-									"desc" => $title["description"]);
-								
-								// patch optes end
-								
-								if(array_key_exists($objective_id, $lo_results))
-								{
-									$lo_result = $lo_results[$objective_id];									
-									$tmp[$objective_id]["result_perc"] = $lo_result["result_perc"];
-									$tmp[$objective_id]["limit_perc"] = $lo_result["limit_perc"];
-									$tmp[$objective_id]["status"] = $lo_result["status"];
-									$tmp[$objective_id]["type"] = $lo_result["type"];
-								}												
-							}	
-														
-							// order
-							foreach($coll_objtv as $objtv_id)
-							{								
-								$references[$ref_id]["objectives"][] = $tmp[$objtv_id];
-							}
-						}
-					}
+					$references[$ref_id]["lp_status"] = $item["status"];												
 				}												
 			}									
 		}		
 		
 		return $references;
+	}
+	
+	protected function parseObjectives($a_obj_id, $a_user_id)
+	{
+		$res = array();
+		
+		// we need the collection for the correct order
+		include_once "Services/Tracking/classes/class.ilLPObjSettings.php";
+		include_once "Services/Tracking/classes/collection/class.ilLPCollectionOfObjectives.php";
+		$coll_objtv = new ilLPCollectionOfObjectives($a_obj_id, ilLPObjSettings::LP_MODE_OBJECTIVES);
+		$coll_objtv = $coll_objtv->getItems();
+		if($coll_objtv)
+		{
+			// #13373
+			$lo_results = $this->parseLOUserResults($a_obj_id, $a_user_id);
+			
+			include_once "Modules/Course/classes/Objectives/class.ilLOTestAssignments.php";
+			$lo_ass = ilLOTestAssignments::getInstance($a_obj_id);
+
+			$tmp = array();
+
+			include_once "Modules/Course/classes/class.ilCourseObjective.php";
+			foreach($coll_objtv as $objective_id)
+			{			
+				// patch optes start
+
+				$title = ilCourseObjective::lookupObjectiveTitle($objective_id, true);
+
+				$tmp[$objective_id] = array(
+					"id" => $objective_id,
+					"title" => $title["title"],
+					"desc" => $title["description"],
+					"itest" => $lo_ass->getTestByObjective($objective_id, ilLOSettings::TYPE_TEST_INITIAL),
+					"qtest" => $lo_ass->getTestByObjective($objective_id, ilLOSettings::TYPE_TEST_QUALIFIED));
+				
+				// patch optes end
+
+				if(array_key_exists($objective_id, $lo_results))
+				{
+					$lo_result = $lo_results[$objective_id];				
+					$tmp[$objective_id]["user_id"] = $lo_result["user_id"];		
+					$tmp[$objective_id]["result_perc"] = $lo_result["result_perc"];
+					$tmp[$objective_id]["limit_perc"] = $lo_result["limit_perc"];
+					$tmp[$objective_id]["status"] = $lo_result["status"];
+					$tmp[$objective_id]["type"] = $lo_result["type"];					
+					$tmp[$objective_id]["initial"] = $lo_result["initial"];													
+				}												
+			}	
+
+			// order
+			foreach($coll_objtv as $objtv_id)
+			{								
+				$res[] = $tmp[$objtv_id];
+			}
+		}
+		
+		return $res;
 	}
 		
 	// patch optes end
@@ -990,7 +1043,8 @@ class ilPortfolioPageGUI extends ilPageObjectGUI
 			if(isset($types[ilLOUserResults::TYPE_QUALIFIED]))
 			{
 				$result = $types[ilLOUserResults::TYPE_QUALIFIED];	
-				$result["type"] = ilLOUserResults::TYPE_QUALIFIED;				
+				$result["type"] = ilLOUserResults::TYPE_QUALIFIED;	
+				$result["initial"] = $types[ilLOUserResults::TYPE_INITIAL];
 			}
 			else
 			{

@@ -13,7 +13,7 @@ include_once './Services/AccessControl/interfaces/interface.ilConditionHandling.
 *
 * @author	Helmut Schottmueller <helmut.schottmueller@mac.com>
 * @author 	Alex Killing <alex.killing@gmx.de>
-* @version $Id: class.ilObjTestAccess.php 57103 2015-01-14 09:43:56Z bheyser $
+* @version $Id: class.ilObjTestAccess.php 57282 2015-01-21 10:04:21Z bheyser $
 *
 * @ingroup ModulesTest
 */
@@ -783,6 +783,20 @@ class ilObjTestAccess extends ilObjectAccess implements ilConditionHandling
 
 		return $result->numRows() == 1;
 	}
-}
 
-?>
+	public static function visibleUserResultExists($testObjId, $userId)
+	{
+		$testOBJ = ilObjectFactory::getInstanceByObjId($testObjId, false);
+
+		if( !($testOBJ instanceof ilObjTest) )
+		{
+			return false;
+		}
+
+		require_once 'Modules/Test/classes/class.ilTestSessionFactory.php';
+		$testSessionFactory = new ilTestSessionFactory($testOBJ);
+		$testSession = $testSessionFactory->getSessionByUserId($userId);
+
+		return $testOBJ->canShowTestResults($testSession);
+	}
+}

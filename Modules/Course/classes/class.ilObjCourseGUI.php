@@ -8,7 +8,7 @@ require_once "./Services/Container/classes/class.ilContainerGUI.php";
 * Class ilObjCourseGUI
 *
 * @author Stefan Meyer <smeyer.ilias@gmx.de> 
-* $Id: class.ilObjCourseGUI.php 57069 2015-01-13 12:46:46Z smeyer $
+* $Id: class.ilObjCourseGUI.php 57717 2015-02-01 18:41:34Z smeyer $
 *
 * @ilCtrl_Calls ilObjCourseGUI: ilCourseRegistrationGUI, ilShopPurchaseGUI, ilCourseObjectivesGUI
 * @ilCtrl_Calls ilObjCourseGUI: ilObjCourseGroupingGUI, ilMDEditorGUI, ilInfoScreenGUI, ilLearningProgressGUI, ilPermissionGUI
@@ -4478,7 +4478,20 @@ class ilObjCourseGUI extends ilContainerGUI
 				include_once './Services/Container/classes/class.ilContainerStartObjectsGUI.php';
 				$stgui = new ilContainerStartObjectsGUI($this->object);
 				$this->ctrl->forwardCommand($stgui);
-				break;			
+				break;		
+			
+			case 'illomembertestresultgui':
+				include_once './Modules/Course/classes/Objectives/class.ilLOMemberTestResultGUI.php';
+				$GLOBALS['ilCtrl']->setReturn($this, 'members');
+				$GLOBALS['ilTabs']->clearTargets();
+				$GLOBALS['ilTabs']->setBackTarget(
+					$GLOBALS['lng']->txt('back'),
+					$GLOBALS['ilCtrl']->getLinkTarget($this,'members')
+				);
+				
+				$result_view = new ilLOMemberTestResultGUI($this, $this->object, (int) $_REQUEST['uid']);
+				$this->ctrl->forwardCommand($result_view);
+				break;
 
             default:
 /*                if(!$this->creation_mode)
@@ -5236,6 +5249,18 @@ class ilObjCourseGUI extends ilContainerGUI
 	}
 	
 	/**
+	 * 
+	 * @return booleanRedirect ot test after confirmation of resetting completed objectives
+	 */
+	protected function redirectLocToTestConfirmedObject()
+	{
+		include_once './Services/Link/classes/class.ilLink.php';
+		ilUtil::redirect(ilLink::_getLink((int) $_REQUEST['tid']));
+		return TRUE;
+		
+	}
+	
+	/**
 	 * Test redirection will be moved lo adapter
 	 */
 	protected function redirectLocToTestObject($a_force_new_run = NULL)
@@ -5247,20 +5272,19 @@ class ilObjCourseGUI extends ilContainerGUI
 		include_once './Modules/Course/classes/Objectives/class.ilLOSettings.php';
 		include_once './Modules/Course/classes/Objectives/class.ilLOTestAssignments.php';
 		
-		$assignments = ilLOTestAssignments::getInstance($this->object->getId());
-		$type = $assignments->getTypeByTest($test_id);
-		
 		
 		$res = new ilLOUserResults(
 				$this->object->getId(),
 				$GLOBALS['ilUser']->getId());
-		$passed = $res->getCompletedObjectiveIdsByType($type);
+		$passed = $res->getCompletedObjectiveIds();
 
+		$has_completed = FALSE;
 		if($objective_id)
 		{
 			$objective_ids = array($objective_id);
 			if(in_array($objective_id, $passed))
 			{
+				$has_completed = TRUE;
 				$passed = array();
 			}
 		}
@@ -5272,173 +5296,22 @@ class ilObjCourseGUI extends ilContainerGUI
 			// do not disable objective question if all are passed
 			if(count($objective_ids) == count($passed))
 			{
+				$has_completed = TRUE;
 				$passed = array();
 			}
 		}
 		
-		if(is_null($a_force_new_run))
+		if($has_completed)
 		{
-			$resume_type = $this->handleActivePass($test_id, $objective_id);
-			switch($resume_type)
-			{
-				case 1:
-					return TRUE;
-				case 2:
-					$a_force_new_run = TRUE;
-					break;
-				case 3:
-					$a_force_new_run = FALSE;
-					break;
-			}
-		}
-		else
-		{
-			include_once './Modules/Test/classes/class.ilObjTest.php';
-			ilObjTest::ensureParticipantsLastActivePassFinished(
-					$test_id,
-					$GLOBALS['ilUser']->getId(),
-					$a_force_new_run
-			);
+			// show confirmation
+			$this->redirectLocToTestConfirmation($objective_id,$test_id);
+			return TRUE;
 		}
 		
-		if($a_force_new_run === TRUE)
-		{
-			include_once './Modules/Course/classes/Objectives/class.ilLOTestRun.php';
-			ilLOTestRun::deleteRun(
-					$this->object->getId(),
-					$GLOBALS['ilUser']->getId(),
-					ilObject::_lookupObjId($test_id)
-			);
-
-			foreach((array) $objective_ids as $oid)
-			{
-				if(!in_array($oid, $passed))
-				{
-					$run = new ilLOTestRun(
-						$this->object->getId(),
-						$GLOBALS['ilUser']->getId(),
-						ilObject::_lookupObjId($test_id),
-						$oid);
-					$run->create();
-				}
-			}
-		}
+		include_once './Services/Link/classes/class.ilLink.php';
+		ilUtil::redirect(ilLink::_getLink($test_id));
+		return TRUE;
 		
-		// Redirect to test player
-		include_once './Services/Object/classes/class.ilObjectFactory.php';
-		$test_obj = ilObjectFactory::getInstanceByObjId(ilObject::_lookupObjId($test_id));
-
-		include_once 'Modules/Test/classes/class.ilTestPlayerFactory.php';
-		$testPlayerFactory = new ilTestPlayerFactory($test_obj);
-		$playerGuiClass = get_class($testPlayerFactory->getPlayerGUI());
-		
-		$sessionLock = md5($_COOKIE[session_name()] . time()); // do NOT set this into $_SESSION
-
-		// resume or start new run
-		if(
-				ilObjTest::isParticipantsLastPassActive(
-				$test_id,
-				$GLOBALS['ilUser']->getId())
-		)
-		{
-			$test_cmd = 'resumePlayer';
-		}
-		else
-		{
-			$test_cmd = 'startPlayer';
-		}
-		
-		$GLOBALS['ilCtrl']->setParameterByClass($playerGuiClass,'ref_id',$test_id);
-		$GLOBALS['ilCtrl']->setParameterByClass($playerGuiClass,'crs_show_result',$this->object->getRefId());
-		$GLOBALS['ilCtrl']->setParameterByClass($playerGuiClass,'lock',$sessionLock);
-		$GLOBALS['ilCtrl']->redirectByClass(
-						array(
-							'ilObjTestGUI',
-							$playerGuiClass
-						),
-						$test_cmd
-		);
-	}
-	
-	/**
-	 * 
-	 * @param type $a_test_ref_id
-	 * @param type $a_objective_id
-	 * @return int 1 confirmation is shown, 2 new pass must be forced, 3 if no new pass must be forced 
-	 */
-	protected function handleActivePass($a_test_ref_id, $a_objective_id)
-	{
-		// check if pass exists
-		include_once './Modules/Test/classes/class.ilObjTest.php';
-		if(
-			!ilObjTest::isParticipantsLastPassActive(
-				$a_test_ref_id,
-				$GLOBALS['ilUser']->getId())
-		)
-		{
-			$GLOBALS['ilLog']->write(__METHOD__.' No previous pass exists.');
-			return 2;
-		}
-
-		$GLOBALS['ilLog']->write(__METHOD__.' Active test pass exists... ');
-
-		// check if multiple pass exists
-		include_once './Modules/Course/classes/Objectives/class.ilLOTestRun.php';
-		$last_objectives = ilLOTestRun::lookupObjectives(
-				$this->object->getId(), 
-				$GLOBALS['ilUser']->getId(),
-				ilObject::_lookupObjId($a_test_ref_id)
-		);
-		if(count((array) $last_objectives) > 1)
-		{
-			// if multi objective call and last run is multi call
-			// => force no new run
-			if(!$a_objective_id)
-			{
-				$GLOBALS['ilLog']->write(__METHOD__.': Continuing multi objective test pass.');
-				return 3;
-			}
-			// no multi objective call => confirm
-			else
-			{
-				$this->redirectLocToTestConfirmation($a_objective_id,$a_test_ref_id);
-				return 1;
-			}
-		}
-		if(count((array) $last_objectives) == 1)
-		{
-			// continue old run => 
-			if(
-				$a_objective_id && in_array($a_objective_id,(array) $last_objectives)
-			)
-			{
-				return 3;
-			}
-			elseif(
-				$a_objective_id && !in_array($a_objective_id,(array) $last_objectives)
-			)
-			{
-				$this->redirectLocToTestConfirmation($a_objective_id,$a_test_ref_id);
-				return 1;
-				
-			}
-			
-		}
-		$this->redirectLocToTestConfirmation($a_objective_id,$a_test_ref_id);
-		return 1;
-	}
-	
-	/**
-	 * Start new run
-	 */
-	protected function redirectLocToTestNewRunObject()
-	{
-		$this->redirectLocToTestObject(TRUE);
-	}
-	
-	protected function redirectLocToTestContinueObject()
-	{
-		$this->redirectLocToTestObject(FALSE);
 	}
 	
 	/**
@@ -5452,26 +5325,24 @@ class ilObjCourseGUI extends ilContainerGUI
 		$confirm = new ilConfirmationGUI();
 		$confirm->setFormAction($GLOBALS['ilCtrl']->getFormAction($this));
 		
-		include_once './Modules/Course/classes/Objectives/class.ilLOSettings.php';
-		if(ilLOSettings::getInstanceByObjId($this->object->getId())->getQualifiedTest() == $a_test_id)
+		if($a_objective_id)
 		{
-			$question = $this->lng->txt('crs_loc_qst_resume_tst_qtest');
+			$question = $this->lng->txt('crs_loc_objective_passed_confirmation');
 		}
 		else
 		{
-			$question = $this->lng->txt('crs_loc_qst_resume_tst_itest');
+			$question = $this->lng->txt('crs_loc_objectives_passed_confirmation');
 		}
+		
+		$confirm->addHiddenItem('objective_id', $a_objective_id);
+		$confirm->addHiddenItem('tid', $a_test_id);
+		$confirm->setConfirm($this->lng->txt('crs_loc_tst_start'), 'redirectLocToTestConfirmed');
+		$confirm->setCancel($this->lng->txt('cancel'), 'view');
 		
 		ilUtil::sendQuestion($question);
 
-		$confirm->addHiddenItem('objective_id', $a_objective_id);
-		$confirm->addHiddenItem('tid', $a_test_id);
-		$confirm->setConfirm($this->lng->txt('crs_loc_tst_resume'), 'redirectLocToTestContinue');
-		$confirm->setCancel($this->lng->txt('crs_loc_tst_new_run'), 'redirectLocToTestNewRun');
-		
 		$GLOBALS['tpl']->setContent($confirm->getHTML());
 		return true;
-		
 	}
 	// end-patch lok
 

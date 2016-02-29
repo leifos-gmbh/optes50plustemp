@@ -5,8 +5,8 @@ require_once("./Modules/DataCollection/classes/class.ilDataCollectionRecord.php"
 require_once("./Modules/DataCollection/classes/class.ilDataCollectionField.php");
 require_once("./Modules/DataCollection/classes/class.ilDataCollectionTable.php");
 require_once("./Modules/DataCollection/classes/class.ilDataCollectionDatatype.php");
-require_once("Services/Form/classes/class.ilPropertyFormGUI.php");
-require_once("Services/Form/classes/class.ilPropertyFormGUI.php");
+require_once("./Services/Form/classes/class.ilPropertyFormGUI.php");
+require_once("./Services/Form/classes/class.ilPropertyFormGUI.php");
 require_once('./Services/Utilities/classes/class.ilConfirmationGUI.php');
 require_once('./Services/UIComponent/Overlay/classes/class.ilOverlayGUI.php');
 
@@ -253,9 +253,11 @@ class ilDataCollectionRecordEditGUI {
 				$item->setOptions($options);
 				if ($field->getDatatypeId() == ilDataCollectionDatatype::INPUTFORMAT_REFERENCE) { // FSX use this to apply to MultiSelectInputGUI
 					//					if (!$field->isNRef()) { // addCustomAttribute only defined for single selects
-					$item->addCustomAttribute('data-ref="1"');
-					$item->addCustomAttribute('data-ref-table-id="' . $reftable->getId() . '"');
-					$item->addCustomAttribute('data-ref-field-id="' . $reffield->getId() . '"');
+					if ($reftable->hasPermissionToAddRecord($_GET['ref_id'])) {
+						$item->addCustomAttribute('data-ref="1"');
+						$item->addCustomAttribute('data-ref-table-id="' . $reftable->getId() . '"');
+						$item->addCustomAttribute('data-ref-field-id="' . $reffield->getId() . '"');
+					}
 					//					}
 				}
 			}
@@ -269,7 +271,7 @@ class ilDataCollectionRecordEditGUI {
 			if ($field->getDatatypeId() == ilDataCollectionDatatype::INPUTFORMAT_FILE
 				|| $field->getDatatypeId() == ilDataCollectionDatatype::INPUTFORMAT_MOB
 			) {
-				if ($this->record_id && $record->getId()) {
+				if ($this->record_id AND $record->getId()) {
 					$field_value = $record->getRecordFieldValue($field->getId());
 					if ($field_value) {
 						$item->setRequired(false);
@@ -549,7 +551,7 @@ class ilDataCollectionRecordEditGUI {
 				include_once './Services/Tree/classes/class.ilPathGUI.php';
 				$path = new ilPathGUI();
 				$tpl->setCurrentBlock('result');
-				$tpl->setVariable('RESULT_PATH', $path->getPath(ROOT_FOLDER_ID, $reference) . " > " . $entry['title']);
+				$tpl->setVariable('RESULT_PATH', $path->getPath(ROOT_FOLDER_ID, $reference) . " » " . $entry['title']);
 				$tpl->setVariable('RESULT_REF', $reference);
 				$tpl->setVariable('FIELD_ID', $dest);
 				$tpl->parseCurrentBlock();

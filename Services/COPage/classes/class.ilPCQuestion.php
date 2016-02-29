@@ -11,7 +11,7 @@ require_once("./Services/COPage/classes/class.ilPageContent.php");
 * Assessment Question of ilPageObject
 *
 * @author Alex Killing <alex.killing@gmx.de>
-* @version $Id: class.ilPCQuestion.php 55306 2014-11-19 09:02:42Z bheyser $
+* @version $Id: class.ilPCQuestion.php 57331 2015-01-22 10:14:28Z jluetzen $
 *
 * @ingroup ServicesCOPage
 */
@@ -19,6 +19,8 @@ class ilPCQuestion extends ilPageContent
 {
 	var $dom;
 	var $q_node;			// node of Paragraph element
+	
+	protected static $initial_done; // [bool]
 	
 	/**
 	* Init page content component.
@@ -263,7 +265,7 @@ class ilPCQuestion extends ilPageContent
 		{
 			// #14154
 			$q_ids = $this->getPage()->getQuestionIds();
-			if($q_ids)
+			if(sizeof($q_ids))
 			{
 				include_once "./Modules/TestQuestionPool/classes/class.assQuestionGUI.php";
 				foreach($q_ids as $q_id)
@@ -276,11 +278,19 @@ class ilPCQuestion extends ilPageContent
 							$a_output);
 					}
 				}
-			}
-			
-			$qhtml = $this->getQuestionJsOfPage(($a_mode == "edit") ? true : false, $a_mode);
-			require_once './Modules/Scorm2004/classes/class.ilQuestionExporter.php';
-			$a_output = "<script>var ScormApi=null;".ilQuestionExporter::questionsJS()."</script>".$a_output;
+				
+				// this exports the questions which is needed below
+				$qhtml = $this->getQuestionJsOfPage(($a_mode == "edit") ? true : false, $a_mode);			
+															
+				require_once './Modules/Scorm2004/classes/class.ilQuestionExporter.php';
+				$a_output = "<script>".ilQuestionExporter::questionsJS($q_ids)."</script>".$a_output;
+				
+				if(!self::$initial_done)
+				{
+					$a_output = "<script>var ScormApi=null; var questions = new Array();</script>".$a_output;
+					self::$initial_done = true;
+				}													
+			}		
 		}
 		else
 		{

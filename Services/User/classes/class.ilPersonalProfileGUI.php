@@ -5,7 +5,7 @@
  * GUI class for personal profile
  *
  * @author Alex Killing <alex.killing@gmx.de>
- * @version $Id: class.ilPersonalProfileGUI.php 56831 2015-01-07 11:22:27Z smeyer $
+ * @version $Id: class.ilPersonalProfileGUI.php 57784 2015-02-03 16:43:44Z bheyser $
  *
  * @ilCtrl_Calls ilPersonalProfileGUI: ilPublicUserProfileGUI
  */
@@ -1162,9 +1162,12 @@ class ilPersonalProfileGUI
 			"title" => $ilUser->getUTitle(),
 			"birthday" => $birthday,
 			"gender" => $gender,
-			"institution" => $ilUser->getInstitution(),
-			"department" => $ilUser->getDepartment(),
 			"upload" => $pic,
+			"interests_general" => $ilUser->getGeneralInterestsAsText(),
+			"interests_help_offered" => $ilUser->getOfferingHelpAsText(),
+			"interests_help_looking" => $ilUser->getLookingForHelpAsText(),
+			"institution" => $ilUser->getInstitution(),
+			"department" => $ilUser->getDepartment(),			
 			"street" => $ilUser->getStreet(),
 			"zipcode" => $ilUser->getZipcode(),
 			"city" => $ilUser->getCity(),
@@ -1175,10 +1178,7 @@ class ilPersonalProfileGUI
 			"phone_mobile" => $ilUser->getPhoneMobile(),
 			"fax" => $ilUser->getFax(),
 			"email" => $ilUser->getEmail(),
-			"hobby" => $ilUser->getHobby(),
-			"interests_general" => $ilUser->getGeneralInterestsAsText(),
-			"interests_help_offered" => $ilUser->getOfferingHelpAsText(),
-			"interests_help_looking" => $ilUser->getLookingForHelpAsText(),
+			"hobby" => $ilUser->getHobby(),			
 			"matriculation" => $ilUser->getMatriculation(),
 			"delicious" => $ilUser->getDelicious()
 			);

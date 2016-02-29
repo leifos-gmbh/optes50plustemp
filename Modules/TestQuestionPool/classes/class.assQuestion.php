@@ -13,7 +13,7 @@ include_once "./Modules/Test/classes/inc.AssessmentConstants.php";
  * 
  * @author		Helmut Schottmüller <helmut.schottmueller@mac.com>
  * @author		Björn Heyser <bheyser@databay.de>
- * @version		$Id: class.assQuestion.php 56504 2014-12-17 10:21:06Z bheyser $
+ * @version		$Id: class.assQuestion.php 59743 2015-07-01 15:29:29Z bheyser $
  * 
  * @ingroup		ModulesTestQuestionPool
  */
@@ -1868,6 +1868,17 @@ abstract class assQuestion
 		require_once 'Modules/TestQuestionPool/classes/class.ilAssQuestionHintList.php';
 		ilAssQuestionHintList::deleteHintsByQuestionIds(array($question_id));
 
+		require_once 'Modules/TestQuestionPool/classes/class.ilAssQuestionSkillAssignmentList.php';
+		$assignmentList = new ilAssQuestionSkillAssignmentList($ilDB);
+		$assignmentList->setParentObjId($obj_id);
+		$assignmentList->setQuestionIdFilter($question_id);
+		$assignmentList->loadFromDb();
+		foreach($assignmentList->getAssignmentsByQuestionId($question_id) as $assignment)
+		{
+			/* @var ilAssQuestionSkillAssignment $assignment */
+			$assignment->deleteFromDb();
+		}
+
 		try
 		{
 			// update question count of question pool
@@ -2353,6 +2364,9 @@ abstract class assQuestion
 		
 		// duplicate question hints
 		$this->duplicateQuestionHints($originalQuestionId, $duplicateQuestionId);
+		
+		// duplicate skill assignments
+		$this->duplicateSkillAssignments($originalParentId, $originalQuestionId, $duplicateParentId, $duplicateQuestionId);
 	}
 
 	protected function beforeSyncWithOriginal($origQuestionId, $dupQuestionId, $origParentObjId, $dupParentObjId)
@@ -2378,6 +2392,9 @@ abstract class assQuestion
 		
 		// duplicate question hints
 		$this->duplicateQuestionHints($sourceQuestionId, $targetQuestionId);
+
+		// duplicate skill assignments
+		$this->duplicateSkillAssignments($sourceParentId, $sourceQuestionId, $targetParentId, $targetQuestionId);
 	}
 	
 /**
@@ -2839,16 +2856,20 @@ abstract class assQuestion
 
 		$this->beforeSyncWithOriginal($original, $id, $originalObjId, $objId);
 
-		$this->setId($this->getOriginalId());
+		$this->setId($original);
 		$this->setOriginalId(NULL);
 		$this->setObjId($originalObjId);
+		
 		$this->saveToDb();
+		
 		$this->deletePageOfQuestion($original);
 		$this->createPageObject();
 		$this->copyPageOfQuestion($id);
 
 		$this->setId($id);
 		$this->setOriginalId($original);
+		$this->setObjId($objId);
+		
 		$this->updateSuggestedSolutions($original);
 		$this->syncXHTMLMediaObjectsOfQuestion();
 
@@ -2930,7 +2951,11 @@ abstract class assQuestion
 	{
 		return self::_instantiateQuestion($question_id);
 	}
-	
+
+	/**
+	 * @param $question_id
+	 * @return assQuestion
+	 */
 	public static function _instantiateQuestion($question_id)
 	{
 		global $ilCtrl, $ilDB, $lng;
@@ -4065,6 +4090,46 @@ abstract class assQuestion
 			}
 		}
 	}
+
+	protected function duplicateSkillAssignments($srcParentId, $srcQuestionId, $trgParentId, $trgQuestionId)
+	{
+		global $ilDB;
+		
+		require_once 'Modules/TestQuestionPool/classes/class.ilAssQuestionSkillAssignmentList.php';
+		$assignmentList = new ilAssQuestionSkillAssignmentList($ilDB);
+		$assignmentList->setParentObjId($srcParentId);
+		$assignmentList->setQuestionIdFilter($srcQuestionId);
+		$assignmentList->loadFromDb();
+		
+		foreach($assignmentList->getAssignmentsByQuestionId($srcQuestionId) as $assignment)
+		{
+			/* @var ilAssQuestionSkillAssignment $assignment */
+			
+			$assignment->setParentObjId($trgParentId);
+			$assignment->setQuestionId($trgQuestionId);
+			$assignment->saveToDb();
+		}
+	}
+
+	public function syncSkillAssignments($srcParentId, $srcQuestionId, $trgParentId, $trgQuestionId)
+	{
+		global $ilDB;
+
+		require_once 'Modules/TestQuestionPool/classes/class.ilAssQuestionSkillAssignmentList.php';
+		$assignmentList = new ilAssQuestionSkillAssignmentList($ilDB);
+		$assignmentList->setParentObjId($trgParentId);
+		$assignmentList->setQuestionIdFilter($trgQuestionId);
+		$assignmentList->loadFromDb();
+		
+		foreach($assignmentList->getAssignmentsByQuestionId($trgQuestionId) as $assignment)
+		{
+			/* @var ilAssQuestionSkillAssignment $assignment */
+
+			$assignment->deleteFromDb();
+		}
+		
+		$this->duplicateSkillAssignments($srcParentId, $srcQuestionId, $trgParentId, $trgQuestionId);
+	}
 	
 	/**
 	 * returns boolean wether the question
@@ -4437,5 +4502,27 @@ abstract class assQuestion
 			$sec += $time_array[2];
 		}
 		return $sec;
+	}
+
+	/**
+	 * @param $active_id
+	 * @param $pass
+	 * @return integer
+	 */
+	protected function lookupMaxStep($active_id, $pass)
+	{
+		/** @var ilDB $ilDB */
+		global $ilDB;
+
+		$res = $ilDB->queryF(
+			"SELECT MAX(step) max_step FROM tst_solutions WHERE active_fi = %s AND pass = %s AND question_fi = %s",
+			array("integer", "integer", "integer"), array($active_id, $pass, $this->getId())
+		);
+
+		$row = $ilDB->fetchAssoc($res);
+
+		$maxStep = $row['max_step'];
+
+		return $maxStep;
 	}
 }

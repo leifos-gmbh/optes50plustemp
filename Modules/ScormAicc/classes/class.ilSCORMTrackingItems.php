@@ -49,19 +49,17 @@ class ilSCORMTrackingItems
 	function userDataArrayForExport($user, $b_allowExportPrivacy=false) {
 		$userArray = array();
 		if ($b_allowExportPrivacy == false) {
-			$userArray["user_id"]=$user;
+			$userArray["user"]=$user;
 		} else {
 			global $ilUser;
 			$userArray["login"] = "";
-			$userArray["firstname"] = "";
-			$userArray["lastname"] = "";
+			$userArray["user"] = "";
 			$userArray["email"] = "";
 			$userArray["department"] = "";
 			if(ilObject::_exists($user)  && ilObject::_lookUpType($user) == 'usr') {
 				$e_user = new ilObjUser($user);
 				$userArray["login"] = $e_user->getLogin();
-				$userArray["firstname"] = $e_user->getFirstname();
-				$userArray["lastname"] = $e_user->getLastname();
+				$userArray["user"] = $e_user->getLastname() . ', ' . $e_user->getFirstname();
 				$userArray["email"] = "".$e_user->getEmail();
 				$userArray["department"] = "".$e_user->getDepartment();
 			}
@@ -108,6 +106,60 @@ class ilSCORMTrackingItems
 			if(!is_null($data['rvalue'])) $a_return[''.$data['user_id'].'-'.$data['sco_id'].'-'.$counter] = $data['rvalue'];
 		}
 		return $a_return;
+	}
+	
+	function exportSelectedRawColumns() {
+		global $lng;
+		$lng->loadLanguageModule("scormtrac");
+		// default fields
+		$cols = array();
+		$udh=self::userDataHeaderForExport();
+		$a_cols=explode(',',
+			'lm_id,lm_title,identifierref,sco_id,sco_marked_for_learning_progress,sco_title,'.$udh["cols"]
+			.',c_timestamp,lvalue,rvalue');
+		$a_true=explode(',',$udh["default"].",identifierref,c_timestamp,lvalue,rvalue");
+		for ($i=0;$i<count($a_cols);$i++) {
+			$cols[$a_cols[$i]] = array("txt" => $lng->txt($a_cols[$i]),"default" => false);
+		}
+		for ($i=0;$i<count($a_true);$i++) {
+			$cols[$a_true[$i]]["default"] = true;
+		}
+		return $cols;
+	}
+
+	function exportSelectedRaw($a_user = array(), $a_sco = array(), $b_orderBySCO=false, $allowExportPrivacy=false) {
+		global $ilDB, $lng;
+		$lng->loadLanguageModule("scormtrac");
+
+		$returnData = array();
+
+		$scoTitles = self::scoTitlesForExportSelected();
+
+		$scoProgress = self::markedLearningStatusForExportSelected($scoTitles);
+
+		$query = 'SELECT user_id, st.obj_id, sco_id, identifierref, c_timestamp, lvalue, rvalue '
+			. 'FROM scorm_tracking st '
+			. 'JOIN sc_item si ON st.sco_id = si.obj_id '
+			. 'WHERE '.$ilDB->in('sco_id', $a_sco, false, 'integer') .' '
+			. 'AND '.$ilDB->in('user_id', $a_user, false, 'integer') .' '
+//			. 'AND st.obj_id = '.$ilDB->quote($this->getId(),'integer') .' '
+			. 'ORDER BY ';
+			if ($b_orderBySCO) $query.='sco_id, user_id';
+			else $query.='user_id, sco_id';
+		$res = $ilDB->query($query);
+		while($data = $ilDB->fetchAssoc($res))
+		{
+			$data["lm_id"] = $this->getObjId();
+			$data["lm_title"] = $this->lmTitle;
+			$data=array_merge($data,self::userDataArrayForExport($data["user_id"], $allowExportPrivacy));
+			$data["sco_marked_for_learning_progress"] = $scoProgress[$data["sco_id"]];
+			$data["sco_title"] = $scoTitles[$data["sco_id"]];
+			$data["rvalue"] = "".$data["rvalue"];
+			// $data["c_timestamp"] = $data["c_timestamp"];//ilDatePresentation::formatDate(new ilDateTime($data["c_timestamp"],IL_CAL_UNIX));
+			$returnData[]=$data;
+		}
+		
+		return $returnData;
 	}
 
 	function exportSelectedCoreColumns($b_orderBySCO, $b_allowExportPrivacy) {
@@ -448,22 +500,22 @@ class ilSCORMTrackingItems
 		foreach($dbdata as $data) {
 			$dat=array();
 			$dat["LearningModuleId"] = $this->getObjId();
-			$dat["LearningModuleTitle"] = $this->lmTitle;
-			$dat["LearningModuleVersion"]=$data["module_version"];
+			$dat["LearningModuleTitle"] = "".$this->lmTitle;
+			$dat["LearningModuleVersion"]="".$data["module_version"];
 
 			$dat=array_merge($dat,self::userDataArrayForExport($data["user_id"], $allowExportPrivacy));
 
-			$dat["status"]=$data["status"];
-			$dat["Percentage"]=$data["percentage_completed"];
-			$dat["Attempts"]=$data["package_attempts"];
-			$dat["existingSCOs"]=$scoCounter;
-			$dat["startedSCOs"]=$u_startedSCO[$data["user_id"]];
-			$dat["completedSCOs"]=$u_completedSCO[$data["user_id"]];
-			$dat["passedSCOs"]=$u_passedSCO[$data["user_id"]];
-			$dat["roundedTotal_timeSeconds"]=$data["sco_total_time_sec"];
+			$dat["status"]="".$data["status"];
+			$dat["Percentage"]="".$data["percentage_completed"];
+			$dat["Attempts"]="".$data["package_attempts"];
+			$dat["existingSCOs"]="".$scoCounter;
+			$dat["startedSCOs"]="".$u_startedSCO[$data["user_id"]];
+			$dat["completedSCOs"]="".$u_completedSCO[$data["user_id"]];
+			$dat["passedSCOs"]="".$u_passedSCO[$data["user_id"]];
+			$dat["roundedTotal_timeSeconds"]="".$data["sco_total_time_sec"];
 			if (is_null($data["offline_mode"])) $dat["offline_mode"]="";
 			else $dat["offline_mode"]=$data["offline_mode"];
-			$dat["last_access"]=$data["last_access"];
+			$dat["last_access"]="".$data["last_access"];
 			$returnData[]=$dat;
 		}
 		return $returnData;
@@ -550,49 +602,30 @@ class ilSCORMTrackingItems
 		return self::exportSelectedSuccessRows($a_user, $allowExportPrivacy, $dbdata, $scoCounter, $u_startedSCO, $u_completedSCO, $u_passedSCO);
 	}
 
-	
-	// public function userDataForExport($a_user = array()) {
-		// global $ilUser;
-		// include_once('./Services/PrivacySecurity/classes/class.ilPrivacySettings.php');
-		// $privacy = ilPrivacySettings::_getInstance();
-		// $allowExportPrivacy = $privacy->enabledExportSCORM();
-
-		// $userData = array();
-		// foreach($a_user as $user) {
-			// if ($allowExportPrivacy == true) {
-				// $userData[$user] = ";;;;";
-				// //write export entry
-				// if(ilObject::_exists($user)  && ilObject::_lookUpType($user) == 'usr') {
-					// $e_user = new ilObjUser($user);
-					// $userData[$user] = "\"". $e_user->getLogin() ."\""
-						// . ";\"" . $e_user->getFirstname() ."\""
-						// . ";\"" . $e_user->getLastname()."\""
-						// . ";\"" . $e_user->getEmail() ."\""
-						// . ";\"" . $e_user->getDepartment() ."\"";
-				// }
-			// } else {
-				// $userData[$user] = ";";
-				// if(ilObject::_exists($user)  && ilObject::_lookUpType($user) == 'usr') {
-					// $userData[$user] = $user;
-				// }
-			// }
-		// }
-		// return $userData;
-	// }
 	public function userDataHeaderForExport() {
 		include_once('./Services/PrivacySecurity/classes/class.ilPrivacySettings.php');
 		$privacy = ilPrivacySettings::_getInstance();
 		$allowExportPrivacy = $privacy->enabledExportSCORM();
 		$returnData = array();
 		if ($allowExportPrivacy == true) {
-			$returnData["cols"] = 'login,firstname,lastname,email,department';
-			$returnData["default"] = 'firstname,lastname';
+			$returnData["cols"] = 'login,user,email,department';
 		} else {
-			$returnData["cols"] = 'user_id';
-			$returnData["default"] = 'user_id';
+			$returnData["cols"] = 'user';
 		}
+		$returnData["default"] = 'user';
 		return $returnData;
 	}
+
+	
+	function SCORMTimeToSeconds($a_time){
+		if ($a_time == "") return "";
+		$tarr = explode(":", $a_time);
+//		$sec = (int) $tarr[2] + (int) $tarr[1] * 60 + (int) substr($tarr[0], strlen($tarr[0]) - 3) * 3600;
+		if (count($tarr) != 3 || is_nan($tarr[0]) || is_nan($tarr[1]) || is_nan($tarr[2])) return "";
+		$csec = (int) $tarr[0] * 360000 + (int) $tarr[1] * 6000 + $tarr[2] * 100;
+		return round($csec/100);
+	}
+
 
 
 }

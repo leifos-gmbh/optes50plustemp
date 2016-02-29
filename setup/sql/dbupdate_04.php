@@ -5351,3 +5351,396 @@ if($tgt_ops_id)
 <?php
 	$ilCtrlStructureReader->getStructure();
 ?>
+<#4447>
+<?php
+	if (!$ilDB->tableColumnExists('skl_user_has_level', 'self_eval'))
+	{
+		$ilDB->addTableColumn("skl_user_has_level", "self_eval", array(
+			"type" => "integer",
+			"length" => 1,
+			"notnull" => true,
+			"default" => 0
+		));
+	}
+?>
+<#4448>
+<?php
+	if (!$ilDB->tableColumnExists('skl_user_skill_level', 'self_eval'))
+	{
+		$ilDB->addTableColumn("skl_user_skill_level", "self_eval", array(
+			"type" => "integer",
+			"length" => 1,
+			"notnull" => true,
+			"default" => 0
+		));
+	}
+?>
+<#4449>
+<?php
+		$ilDB->dropPrimaryKey("skl_user_has_level");
+		$ilDB->addPrimaryKey("skl_user_has_level",
+			array("level_id", "user_id", "trigger_obj_id", "tref_id", "self_eval"));
+?>
+<#4450>
+<?php
+		$ilDB->modifyTableColumn("skl_user_has_level", "trigger_obj_type",
+			array(
+				"type" => "text",
+				"length" => 4,
+				"notnull" => false
+			));
+
+		$ilDB->modifyTableColumn("skl_user_skill_level", "trigger_obj_type",
+			array(
+				"type" => "text",
+				"length" => 4,
+				"notnull" => false
+			));
+?>
+<#4451>
+<?php
+	$ilSetting = new ilSetting();
+	if ((int) $ilSetting->get("optes_360_db") <= 0)
+	{
+		/*$ilDB->manipulate("DELETE FROM skl_user_has_level WHERE ".
+			" self_eval = ".$ilDB->quote(1, "integer")
+		);
+		$ilDB->manipulate("DELETE FROM skl_user_skill_level WHERE ".
+			" self_eval = ".$ilDB->quote(1, "integer")
+		);*/
+
+		$set = $ilDB->query("SELECT * FROM skl_self_eval_level ORDER BY last_update ASC");
+		$writtenkeys = array();
+		while ($rec = $ilDB->fetchAssoc($set))
+		{
+			if (!in_array($rec["level_id"].":".$rec["user_id"].":".$rec["tref_id"], $writtenkeys))
+			{
+				$writtenkeys[] = $rec["level_id"].":".$rec["user_id"].":".$rec["tref_id"];
+				$q = "INSERT INTO skl_user_has_level ".
+					"(level_id, user_id, status_date, skill_id, trigger_ref_id, trigger_obj_id, trigger_title, tref_id, trigger_obj_type, self_eval) VALUES (".
+					$ilDB->quote($rec["level_id"], "integer").",".
+					$ilDB->quote($rec["user_id"], "integer").",".
+					$ilDB->quote($rec["last_update"], "timestamp").",".
+					$ilDB->quote($rec["skill_id"], "integer").",".
+					$ilDB->quote(0, "integer").",".
+					$ilDB->quote(0, "integer").",".
+					$ilDB->quote("", "text").",".
+					$ilDB->quote($rec["tref_id"], "integer").",".
+					$ilDB->quote("", "text").",".
+					$ilDB->quote(1, "integer").
+					")";
+				$ilDB->manipulate($q);
+			}
+			else
+			{
+				$ilDB->manipulate("UPDATE skl_user_has_level SET ".
+					" status_date = ".$ilDB->quote($rec["last_update"], "timestamp").",".
+					" skill_id = ".$ilDB->quote($rec["skill_id"], "integer").
+					" WHERE level_id = ".$ilDB->quote($rec["level_id"], "integer").
+					" AND user_id = ".$ilDB->quote($rec["user_id"], "integer").
+					" AND trigger_obj_id = ".$ilDB->quote(0, "integer").
+					" AND tref_id = ".$ilDB->quote($rec["tref_id"], "integer").
+					" AND self_eval = ".$ilDB->quote(1, "integer")
+					);
+			}
+			$q = "INSERT INTO skl_user_skill_level ".
+				"(level_id, user_id, status_date, skill_id, trigger_ref_id, trigger_obj_id, trigger_title, tref_id, trigger_obj_type, self_eval, status, valid) VALUES (".
+				$ilDB->quote($rec["level_id"], "integer").",".
+				$ilDB->quote($rec["user_id"], "integer").",".
+				$ilDB->quote($rec["last_update"], "timestamp").",".
+				$ilDB->quote($rec["skill_id"], "integer").",".
+				$ilDB->quote(0, "integer").",".
+				$ilDB->quote(0, "integer").",".
+				$ilDB->quote("", "text").",".
+				$ilDB->quote($rec["tref_id"], "integer").",".
+				$ilDB->quote("", "text").",".
+				$ilDB->quote(1, "integer").",".
+				$ilDB->quote(1, "integer").",".
+				$ilDB->quote(1, "integer").
+				")";
+			$ilDB->manipulate($q);
+		}
+	}
+?>
+<#4452>
+<?php
+	$ilCtrlStructureReader->getStructure();
+?>
+<#4453>
+<?php
+	$ilCtrlStructureReader->getStructure();
+?>
+<#4454>
+<?php
+	$ilCtrlStructureReader->getStructure();
+?>
+<#4455>
+<?php
+	if(!$ilDB->sequenceExists('booking_reservation_group'))
+	{
+		$ilDB->createSequence('booking_reservation_group');
+	}
+?>
+<#4456>
+<?php
+
+	if(!$ilDB->tableColumnExists('crs_objective_tst','tst_limit_p'))
+	{
+		$ilDB->addTableColumn('crs_objective_tst', 'tst_limit_p', array(
+			'type' => 'integer',
+			'length' => 2,
+			'notnull' => true,
+			'default' => 0
+		));
+	}
+?>
+<#4457>
+<?php
+
+// update question assignment limits
+$query = 'SELECT objective_id, ref_id, question_id FROM crs_objective_qst ';
+$res = $ilDB->query($query);
+
+$questions = array();
+while($row = $res->fetchRow(DB_FETCHMODE_OBJECT))
+{
+	$questions[$row->objective_id.'_'.$row->ref_id][] = $row->question_id;
+}
+
+$GLOBALS['ilLog']->write(__METHOD__.': '.print_r($questions,TRUE));
+
+foreach($questions as $objective_ref_id => $qst_ids)
+{
+	$parts = explode('_', $objective_ref_id);
+	$objective_id = $parts[0];
+	$tst_ref_id = $parts[1];
+	
+	$sum = 0;
+	foreach((array) $qst_ids as $qst_id)
+	{
+		$query = 'SELECT points FROM qpl_questions WHERE question_id = ' . $ilDB->quote($qst_id,'integer');
+		$res_qst = $ilDB->query($query);
+		while($row = $res_qst->fetchRow(DB_FETCHMODE_OBJECT))
+		{
+			$sum += $row->points;
+		}
+		if($sum > 0)
+		{
+			// read limit
+			$query = 'SELECT tst_limit FROM crs_objective_tst '.
+					'WHERE objective_id = '.$ilDB->quote($objective_id,'integer');
+			$res_limit = $ilDB->query($query);
+			
+			$limit_points = 0;
+			while($row = $res_limit->fetchRow(DB_FETCHMODE_OBJECT))
+			{
+				$limit_points = $row->tst_limit;
+			}
+			// calculate percentage
+			$limit_p = $limit_points / $sum * 100;
+			$limit_p = intval($limit_p);
+			$limit_p = ($limit_p >= 100 ? 100 : $limit_p);
+			
+			// update
+			$query = 'UPDATE crs_objective_tst '.
+					'SET tst_limit_p = '.$ilDB->quote($limit_p,'integer').' '.
+					'WHERE objective_id = '.$ilDB->quote($objective_id,'integer').' '.
+					'AND ref_id = '.$ilDB->quote($tst_ref_id,'integer');
+			$ilDB->manipulate($query);
+		}
+	}
+}
+?>
+<#4458>
+<?php
+if(!$ilDB->tableColumnExists('tst_tests','intro_enabled'))
+{
+	$ilDB->addTableColumn('tst_tests', 'intro_enabled', array(
+		'type' => 'integer',
+		'length' => 1,
+		'notnull' => false,
+		'default' => null
+	));
+}
+?>
+<#4459>
+<?php
+if(!$ilDB->tableColumnExists('tst_tests','starting_time_enabled'))
+{
+	$ilDB->addTableColumn('tst_tests', 'starting_time_enabled', array(
+		'type' => 'integer',
+		'length' => 1,
+		'notnull' => false,
+		'default' => null
+	));
+}
+?>
+<#4460>
+<?php
+if(!$ilDB->tableColumnExists('tst_tests','ending_time_enabled'))
+{
+	$ilDB->addTableColumn('tst_tests', 'ending_time_enabled', array(
+		'type' => 'integer',
+		'length' => 1,
+		'notnull' => false,
+		'default' => null
+	));
+}
+?>
+<#4461>
+<?php
+if($ilDB->tableColumnExists('tst_tests','intro_enabled'))
+{
+	$ilDB->dropTableColumn('tst_tests', 'intro_enabled');
+}
+?>
+<#4462>
+<?php
+if($ilDB->tableColumnExists('tst_tests','starting_time_enabled'))
+{
+	$ilDB->dropTableColumn('tst_tests', 'starting_time_enabled');
+}
+?>
+<#4463>
+<?php
+if($ilDB->tableColumnExists('tst_tests','ending_time_enabled'))
+{
+	$ilDB->dropTableColumn('tst_tests', 'ending_time_enabled');
+}
+?>
+<#4464>
+<?php
+if(!$ilDB->tableColumnExists('tst_tests','intro_enabled'))
+{
+	$ilDB->addTableColumn('tst_tests', 'intro_enabled', array(
+		'type' => 'integer',
+		'length' => 1,
+		'notnull' => false,
+		'default' => null
+	));
+
+	$ilDB->queryF(
+		"UPDATE tst_tests SET intro_enabled = %s WHERE LENGTH(introduction) > %s",
+		array('integer', 'integer'), array(1, 0)
+	);
+
+	$ilDB->queryF(
+		"UPDATE tst_tests SET intro_enabled = %s WHERE LENGTH(introduction) = %s OR LENGTH(introduction) IS NULL",
+		array('integer', 'integer'), array(0, 0)
+	);
+}
+?>
+<#4465>
+<?php
+if(!$ilDB->tableColumnExists('tst_tests','starting_time_enabled'))
+{
+	$ilDB->addTableColumn('tst_tests', 'starting_time_enabled', array(
+		'type' => 'integer',
+		'length' => 1,
+		'notnull' => false,
+		'default' => null
+	));
+
+	$ilDB->queryF(
+		"UPDATE tst_tests SET starting_time_enabled = %s WHERE LENGTH(starting_time) > %s",
+		array('integer', 'integer'), array(1, 0)
+	);
+
+	$ilDB->queryF(
+		"UPDATE tst_tests SET starting_time_enabled = %s WHERE LENGTH(starting_time) = %s OR LENGTH(starting_time) IS NULL",
+		array('integer', 'integer'), array(0, 0)
+	);
+}
+?>
+<#4466>
+<?php
+if(!$ilDB->tableColumnExists('tst_tests','ending_time_enabled'))
+{
+	$ilDB->addTableColumn('tst_tests', 'ending_time_enabled', array(
+		'type' => 'integer',
+		'length' => 1,
+		'notnull' => false,
+		'default' => null
+	));
+
+	$ilDB->queryF(
+		"UPDATE tst_tests SET ending_time_enabled = %s WHERE LENGTH(ending_time) > %s",
+		array('integer', 'integer'), array(1, 0)
+	);
+
+	$ilDB->queryF(
+		"UPDATE tst_tests SET ending_time_enabled = %s WHERE LENGTH(ending_time) = %s OR LENGTH(ending_time) IS NULL",
+		array('integer', 'integer'), array(0, 0)
+	);
+}
+?>
+<#4467>
+<?php
+if(!$ilDB->tableColumnExists('tst_tests','password_enabled'))
+{
+	$ilDB->addTableColumn('tst_tests', 'password_enabled', array(
+		'type' => 'integer',
+		'length' => 1,
+		'notnull' => false,
+		'default' => null
+	));
+
+	$ilDB->queryF(
+		"UPDATE tst_tests SET password_enabled = %s WHERE LENGTH(password) > %s",
+		array('integer', 'integer'), array(1, 0)
+	);
+
+	$ilDB->queryF(
+		"UPDATE tst_tests SET password_enabled = %s WHERE LENGTH(password) = %s OR LENGTH(password) IS NULL",
+		array('integer', 'integer'), array(0, 0)
+	);
+}
+?>
+<#4468>
+<?php
+if(!$ilDB->tableColumnExists('tst_tests','limit_users_enabled'))
+{
+	$ilDB->addTableColumn('tst_tests', 'limit_users_enabled', array(
+		'type' => 'integer',
+		'length' => 1,
+		'notnull' => false,
+		'default' => null
+	));
+
+	$ilDB->queryF(
+		"UPDATE tst_tests SET limit_users_enabled = %s WHERE allowedusers IS NOT NULL AND allowedusers > %s",
+		array('integer', 'integer'), array(1, 0)
+	);
+
+	$ilDB->queryF(
+		"UPDATE tst_tests SET limit_users_enabled = %s WHERE allowedusers IS NULL OR allowedusers <= %s",
+		array('integer', 'integer'), array(0, 0)
+	);
+}
+?>
+<#4469>
+<?php
+// @ukonhle: Please do not commit empty database steps ;-)
+?>
+<#4470>
+<?php
+$ilDB->queryF(
+	'DELETE FROM settings WHERE keyword = %s',
+	array('text'),
+	array('ps_export_scorm')
+);
+$ilDB->queryF(
+	'INSERT INTO settings (module, keyword, value) VALUES (%s,%s,%s)',
+	array('text','text','text'),
+	array('common','ps_export_scorm','1')
+);
+?>
+<#4471>
+<?php
+$ilDB->manipulate('DELETE FROM addressbook WHERE login NOT IN(SELECT login FROM usr_data) AND email IS NULL');
+$ilDB->manipulate(
+	'DELETE FROM addressbook_mlist_ass WHERE addr_id NOT IN(
+		SELECT addr_id FROM addressbook
+	)'
+);
+?>

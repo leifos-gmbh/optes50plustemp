@@ -7,7 +7,7 @@ require_once 'Services/UIComponent/AdvancedSelectionList/classes/class.ilAdvance
 /**
  *
  * @author Helmut Schottmüller <ilias@aurealis.de>
- * @version $Id: class.ilTestExportTableGUI.php 53870 2014-09-26 09:08:14Z mjansen $
+ * @version $Id: class.ilTestExportTableGUI.php 57331 2015-01-22 10:14:28Z jluetzen $
  *
  * @ingroup ModulesTest
  */
@@ -27,7 +27,10 @@ class ilTestExportTableGUI extends ilExportTableGUI
 	public function __construct($a_parent_obj, $a_parent_cmd, $a_exp_obj)
 	{
 		parent::__construct($a_parent_obj, $a_parent_cmd, $a_exp_obj);
-		$this->addCustomColumn($this->lng->txt('actions'), $this, 'formatActionsList');
+
+		// NOT REQUIRED ANYMORE, PROBLEM NOW FIXED IN THE ROOT
+		// KEEP CODE, JF OPINIONS / ROOT FIXINGS CAN CHANGE
+		//$this->addCustomColumn($this->lng->txt('actions'), $this, 'formatActionsList');
 	}
 
 	/**

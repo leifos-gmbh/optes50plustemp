@@ -6,7 +6,7 @@
  * shown on "general" subtab
  *
  * @author		Björn Heyser <bheyser@databay.de>
- * @version		$Id: class.ilObjTestSettingsScoringResultsGUI.php 57074 2015-01-13 13:38:45Z jluetzen $
+ * @version		$Id: class.ilObjTestSettingsScoringResultsGUI.php 57616 2015-01-28 13:33:33Z smeyer $
  *
  * @package		Modules/Test
  * 
@@ -395,7 +395,7 @@ class ilObjTestSettingsScoringResultsGUI
 
 						if( $item->getShowTime() )
 						{
-							list($h, $m, $s) = explode('-', $time);
+							list($h, $m, $s) = explode(':', $time);
 
 							$confirmation->addHiddenItem("{$item->getPostVar()}[time][h]", $h);
 							$confirmation->addHiddenItem("{$item->getPostVar()}[time][m]", $m);

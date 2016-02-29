@@ -10,7 +10,7 @@ require_once "./Services/Object/classes/class.ilObjectGUI.php";
 * @author Stefan Meyer <smeyer@databay.de>
 * @author Alex Killing <alex.killing@gmx.de>
 * @author Michael Jansen <mjansen@databay.de>
-* $Id: class.ilObjExerciseGUI.php 57074 2015-01-13 13:38:45Z jluetzen $
+* $Id: class.ilObjExerciseGUI.php 57620 2015-01-28 14:30:43Z bheyser $
 * 
 * @ilCtrl_Calls ilObjExerciseGUI: ilPermissionGUI, ilLearningProgressGUI, ilInfoScreenGUI
 * @ilCtrl_Calls ilObjExerciseGUI: ilObjectCopyGUI, ilFileSystemGUI, ilExportGUI, ilShopPurchaseGUI
@@ -575,6 +575,13 @@ class ilObjExerciseGUI extends ilObjectGUI
 		global $ilUser, $lng, $ilCtrl;
 		
 		$this->checkPermission("read");
+		
+		// #15322
+		if (mktime() > $this->ass->getDeadline() && ($this->ass->getDeadline() != 0))
+		{
+			ilUtil::sendInfo($this->lng->txt("exercise_time_over"));
+			return;
+		}
 
 		$success = false;
 		foreach ($_FILES["deliver"]["name"] as $k => $v)
@@ -612,6 +619,13 @@ class ilObjExerciseGUI extends ilObjectGUI
 		global $ilCtrl;
 	
 		$this->checkPermission("read");
+		
+		// #15322
+		if (mktime() > $this->ass->getDeadline() && ($this->ass->getDeadline() != 0))
+		{
+			ilUtil::sendInfo($this->lng->txt("exercise_time_over"));
+			return;
+		}
 
 		if (preg_match("/zip/",$_FILES["deliver"]["type"]) == 1)
 		{

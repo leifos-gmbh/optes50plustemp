@@ -17,36 +17,21 @@ require_once 'Modules/Test/classes/class.ilTestOutputGUI.php';
  * @ilCtrl_Calls ilTestPlayerFixedQuestionSetGUI: ilTestSubmissionReviewGUI
  * @ilCtrl_Calls ilTestPlayerFixedQuestionSetGUI: ilTestPasswordProtectionGUI
  * @ilCtrl_Calls ilTestPlayerFixedQuestionSetGUI: ilTestAnswerOptionalQuestionsConfirmationGUI
+ * @ilCtrl_Calls ilTestPlayerFixedQuestionSetGUI: ilConfirmationGUI
  */
 class ilTestPlayerFixedQuestionSetGUI extends ilTestOutputGUI
 {
-	protected function performTestPassFinishedTasks($finishedPass)
+	protected function buildTestPassQuestionList()
 	{
-		if( !$this->testSession->isSubmitted() )
-		{
-			$this->testSession->setSubmitted(1);
-			$this->testSession->setSubmittedTimestamp(date('Y-m-d H:i:s'));
-			$this->testSession->saveToDb();
-		}
+		global $ilPluginAdmin;
+		
+		require_once 'Modules/TestQuestionPool/classes/class.ilAssQuestionList.php';
+		$questionList = new ilAssQuestionList($this->db, $this->lng, $ilPluginAdmin);
+		
+		$questionList->setParentObjId($this->object->getId());
 
-		if( $this->object->isSkillServiceToBeConsidered() )
-		{
-			$this->performSkillTriggering(
-				$this->testSession->getActiveId(), $finishedPass, $this->testSession->getUserId()
-			);
-		}
+		$questionList->setQuestionInstanceTypeFilter(ilAssQuestionList::QUESTION_INSTANCE_TYPE_DUPLICATES);
 
-		if( $this->object->getEnableArchiving() )
-		{
-			$this->archiveParticipantSubmission($this->testSession->getActiveId(), $finishedPass);
-		}
-	}
-
-	private function performSkillTriggering($activeId, $finishedPass, $userId)
-	{
-		require_once 'Modules/Test/classes/class.ilTestSkillEvaluation.php';
-		$skillEvaluation = new ilTestSkillEvaluation($this->db, $this->object);
-
-		$skillEvaluation->init()->trigger($activeId, $finishedPass, $userId);
+		return $questionList;
 	}
 }

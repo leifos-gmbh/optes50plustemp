@@ -87,6 +87,13 @@ class ilTestScoringByQuestionsGUI extends ilTestScoringGUI
 		include_once 'Services/YUI/classes/class.ilYuiUtil.php';
 		ilYuiUtil::initPanel();
 		ilYuiUtil::initOverlay();
+
+		$mathJaxSetting = new ilSetting('MathJax');
+		if($mathJaxSetting->get("enable"))
+		{
+			$tpl->addJavaScript($mathJaxSetting->get("path_to_mathjax"));
+		}
+
 		$tpl->addJavascript('./Services/UIComponent/Overlay/js/ilOverlay.js');
 		$tpl->addJavaScript("./Services/JavaScript/js/Basic.js");
 		$tpl->addJavaScript("./Services/Form/js/Form.js");
@@ -291,6 +298,13 @@ class ilTestScoringByQuestionsGUI extends ilTestScoringGUI
 			$scorer = new ilTestScoring($this->object);
 			$scorer->setPreserveManualScores(true);
 			$scorer->recalculateSolutions();
+
+			if ($this->object->getEnableArchiving())
+			{
+				require_once 'Modules/Test/classes/class.ilTestArchiveService.php';
+				$archiveService = new ilTestArchiveService($this->object);
+				$archiveService->archivePassesByActives($scorer->getRecalculatedPassesByActives());
+			}
 		}
 		
 		$this->showManScoringByQuestionParticipantsTable();

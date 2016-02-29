@@ -9,7 +9,7 @@ include_once "./Modules/Test/classes/class.ilTestServiceGUI.php";
 *
 * @author	Helmut Schottmüller <helmut.schottmueller@mac.com>
 * @author	Björn Heyser <bheyser@databay.de>
-* @version	$Id: class.ilTestScoringGUI.php 56504 2014-12-17 10:21:06Z bheyser $
+* @version	$Id: class.ilTestScoringGUI.php 57616 2015-01-28 13:33:33Z smeyer $
 *
 * @ingroup ModulesTest
 * @extends ilTestServiceGUI
@@ -303,7 +303,15 @@ class ilTestScoringGUI extends ilTestServiceGUI
 		require_once './Modules/Test/classes/class.ilTestScoring.php';
 		$scorer = new ilTestScoring($this->object);
 		$scorer->setPreserveManualScores(true);
-		$scorer->recalculateSolutions();			
+		$scorer->recalculateSolutions();
+
+		if ($this->object->getEnableArchiving())
+		{
+			require_once 'Modules/Test/classes/class.ilTestArchiveService.php';
+			$archiveService = new ilTestArchiveService($this->object);
+			$archiveService->archivePassesByActives($scorer->getRecalculatedPassesByActives());
+		}
+		
 		if($this->object->getAnonymity() == 0)
 		{
 			$user_name 				= ilObjUser::_lookupName( ilObjTestAccess::_getParticipantId($activeId));
@@ -409,9 +417,12 @@ class ilTestScoringGUI extends ilTestServiceGUI
 				if( $initValues ) $area->setValue( $this->object->getManualFeedback($activeId, $questionId, $pass) );
 			$form->addItem($area);
 
-				$cust = new ilCustomInputGUI($lng->txt('tst_manscoring_input_best_solution'));
+			if(strlen(trim($bestSolution)))
+			{
+				$cust = new ilCustomInputGUI($lng->txt('tst_show_solution_suggested'));
 				$cust->setHtml($bestSolution);
-			$form->addItem($cust);
+				$form->addItem($cust);
+			}
 		}
 		
 		$sect = new ilFormSectionHeaderGUI();

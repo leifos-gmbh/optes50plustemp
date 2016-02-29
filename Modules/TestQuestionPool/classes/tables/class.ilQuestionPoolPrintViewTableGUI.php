@@ -6,7 +6,7 @@ include_once('./Services/Table/classes/class.ilTable2GUI.php');
 /**
 *
 * @author Helmut Schottmüller <ilias@aurealis.de>
-* @version $Id: class.ilQuestionPoolPrintViewTableGUI.php 54090 2014-10-07 14:42:32Z bheyser $
+* @version $Id: class.ilQuestionPoolPrintViewTableGUI.php 57616 2015-01-28 13:33:33Z smeyer $
 *
 * @ingroup ModulesQuestionPool
 */
@@ -163,10 +163,12 @@ class ilQuestionPoolPrintViewTableGUI extends ilTable2GUI
 				$solutionoutput = $question_gui->getSolutionOutput($active_id = "", $pass = NULL, $graphicalOutput = FALSE, $result_output = FALSE, $show_question_only = FALSE, $show_feedback = FALSE, $show_correct_solution = true, $show_manual_scoring = false);
 				if (strlen($solutionoutput) == 0) $solutionoutput = $question_gui->getPreview();
 				$this->tpl->setVariable("DETAILS", $solutionoutput);
+				$this->tpl->setVariable("ROW_DETAIL_COLSPAN", $this->column_count);
 			}
 			else
 			{
 				$this->tpl->setVariable("DETAILS", $question_gui->getPreview());
+				$this->tpl->setVariable("ROW_DETAIL_COLSPAN", $this->column_count);
 			}
 			$this->tpl->parseCurrentBlock();
 		}

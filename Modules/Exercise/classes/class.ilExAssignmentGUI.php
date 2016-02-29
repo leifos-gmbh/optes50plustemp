@@ -237,8 +237,15 @@ class ilExAssignmentGUI
 							foreach($team_members as $member_id)
 							{
 								$team[] = ilObjUser::_lookupFullname($member_id);
-							}
-							$info->addProperty($lng->txt("exc_team_members"), implode(", ", $team));	
+							}						
+							$team = implode(", ", $team);
+							
+							$button = ilLinkButton::getInstance();							
+							$button->setCaption("exc_manage_team");
+							$button->setUrl($ilCtrl->getLinkTargetByClass("ilobjexercisegui", "submissionScreenTeam"));							
+							$team .= " ".$button->render();	
+							
+							$info->addProperty($lng->txt("exc_team_members"), $team);	
 						}
 						else
 						{
@@ -248,11 +255,11 @@ class ilExAssignmentGUI
 							{
 								if(!sizeof($delivered_files))
 								{
-									 $team_info = $lng->txt("exc_no_team_yet");								
+									 $team_info = $lng->txt("exc_no_team_yet_notice");								
 								}
 								else
 								{
-									$team_info = '<span class="warning">'.$lng->txt("exc_no_team_yet").'</span>';		
+									$team_info = '<span class="warning">'.$lng->txt("exc_no_team_yet_notice").'</span>';		
 								}	
 																	
 								$button = ilLinkButton::getInstance();

@@ -16,7 +16,7 @@ include_once './Modules/Test/classes/inc.AssessmentConstants.php';
  * @author		Björn Heyser <bheyser@databay.de>
  * @author		Maximilian Becker <mbecker@databay.de>
  * 
- * @version	$Id: class.assImagemapQuestionGUI.php 56831 2015-01-07 11:22:27Z smeyer $
+ * @version	$Id: class.assImagemapQuestionGUI.php 57616 2015-01-28 13:33:33Z smeyer $
  * 
  * @ingroup ModulesTestQuestionPool
  */
@@ -58,6 +58,13 @@ class assImagemapQuestionGUI extends assQuestionGUI implements ilGuiQuestionScor
 
 		return $cmd;
 	}
+	
+	protected function deleteImage()
+	{
+		$this->writePostData(true);
+		$this->object->saveToDb();
+		$this->ctrl->redirect($this, 'editQuestion');
+	}
 
 	/**
 	 * Evaluates a posted edit form and writes the form data in the question object
@@ -83,7 +90,7 @@ class assImagemapQuestionGUI extends assQuestionGUI implements ilGuiQuestionScor
 
 	public function writeAnswerSpecificPostData(ilPropertyFormGUI $form)
 	{
-		if (!$_POST['image_delete'])
+		if ($this->ctrl->getCmd() != 'deleteImage')
 		{
 			$this->object->flushAnswers();
 			if (is_array( $_POST['image']['coords']['name'] ))
@@ -120,7 +127,7 @@ class assImagemapQuestionGUI extends assQuestionGUI implements ilGuiQuestionScor
 
 	public function writeQuestionSpecificPostData(ilPropertyFormGUI $form)
 	{
-		if ($_POST['image_delete'])
+		if ($this->ctrl->getCmd() == 'deleteImage')
 		{
 			$this->object->deleteImage();
 		}
@@ -605,7 +612,7 @@ class assImagemapQuestionGUI extends assQuestionGUI implements ilGuiQuestionScor
 		if (!$show_question_only)
 		{
 			// get page object output
-			$solutionoutput = '<div class="ilc_question_Standard">'.$solutionoutput."</div>";
+			$solutionoutput = $this->getILIASPage($solutionoutput);
 		}
 		return $solutionoutput;
 	}

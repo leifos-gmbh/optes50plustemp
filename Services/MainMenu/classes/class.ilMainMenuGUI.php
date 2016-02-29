@@ -8,7 +8,7 @@ include_once 'Services/Mail/classes/class.ilMailGlobalServices.php';
 * Handles display of the main menu
 *
 * @author Alex Killing
-* @version $Id: class.ilMainMenuGUI.php 56831 2015-01-07 11:22:27Z smeyer $
+* @version $Id: class.ilMainMenuGUI.php 57139 2015-01-15 16:28:42Z bheyser $
 */
 class ilMainMenuGUI
 {
@@ -749,12 +749,12 @@ class ilMainMenuGUI
 		$a_tpl->setVariable("TARGET_".$id_up, $a_target);
 		if ($this->active == $a_id || ($this->active == "" && $a_id == "repository"))
 		{
-			$a_tpl->setVariable("MM_CLASS", "MMActive");
+			//$a_tpl->setVariable("MM_CLASS", "MMActive");
 			$a_tpl->setVariable("SEL", '<span class="ilAccHidden">('.$lng->txt("stat_selected").')</span>');
 		}
 		else
 		{
-			$a_tpl->setVariable("MM_CLASS", "MMInactive");
+			//$a_tpl->setVariable("MM_CLASS", "MMInactive");
 		}
 		
 		if($a_id == "repository")

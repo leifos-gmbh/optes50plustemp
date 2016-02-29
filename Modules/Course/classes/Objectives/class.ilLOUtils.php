@@ -89,13 +89,7 @@ class ilLOUtils
 		{
 			include_once './Modules/Course/classes/class.ilCourseObjectiveQuestion.php';
 			$limit = ilCourseObjectiveQuestion::loookupTestLimit(ilObject::_lookupObjId($tst_ref_id), $a_objective_id);
-
-			if($a_max_points)
-			{
-				return (int) $limit / $a_max_points * 100;
-			}
-			return 0;
-			
+			return $limit;
 		}
 	}
 	
@@ -200,6 +194,8 @@ class ilLOUtils
 	
 	public static function hasActiveRun($a_container_id, $a_test_ref_id, $a_objective_id)
 	{
+		return FALSE;
+		
 		// check if pass exists
 		include_once './Modules/Test/classes/class.ilObjTest.php';
 		if(
@@ -226,5 +222,58 @@ class ilLOUtils
 		return false;
 	}
 	
+	public static function getTestResultLinkForUser($a_test_ref_id, $a_user_id)
+	{
+		global $ilCtrl, $ilUser, $ilAccess;
+		
+		if($ilUser->getId() == ANONYMOUS_USER_ID)
+		{
+			return;
+		}
+				
+		$valid = $tutor = false;
+		if($a_user_id == $ilUser->getId())
+		{
+			$valid = $ilAccess->checkAccess('read', '', $a_test_ref_id);
+		}		
+		if(!$valid)
+		{			
+			$valid = $ilAccess->checkAccess('write', '', $a_test_ref_id);
+			$tutor = true;
+		}
+		if($valid)
+		{
+			$testObjId = ilObject::_lookupObjId($a_test_ref_id);
+			if(!$tutor)
+			{					
+				require_once 'Modules/Test/classes/class.ilObjTestAccess.php';
+				if(ilObjTestAccess::visibleUserResultExists($testObjId, $a_user_id))
+				{	
+					$ilCtrl->setParameterByClass('ilObjTestGUI', 'ref_id', $a_test_ref_id);
+					$link = $ilCtrl->getLinkTargetByClass(array('ilRepositoryGUI', 'ilObjTestGUI'), 'userResultsGateway');
+					$ilCtrl->setParameterByClass('ilObjTestGUI', 'ref_id', '');
+					return $link;
+				}
+			}
+			else
+			{
+				include_once 'Modules/Test/classes/class.ilObjTest.php';
+				$testId = ilObjTest::_getTestIDFromObjectID($testObjId);
+				if($testId)
+				{					
+					$userActiveId = ilObjTest::_getActiveIdOfUser($a_user_id, $testId);		
+					if($userActiveId)
+					{
+						$ilCtrl->setParameterByClass('ilTestEvaluationGUI', 'ref_id', $a_test_ref_id);
+						$ilCtrl->setParameterByClass('ilTestEvaluationGUI', 'active_id', $userActiveId);
+						$link = $ilCtrl->getLinkTargetByClass(array('ilRepositoryGUI', 'ilObjTestGUI', 'ilTestEvaluationGUI'), 'outParticipantsResultsOverview');
+						$ilCtrl->setParameterByClass('ilTestEvaluationGUI', 'ref_id', '');
+						$ilCtrl->setParameterByClass('ilTestEvaluationGUI', 'active_id', '');
+						return $link;
+					}
+				}			
+			}			
+		}
+	}
 }
 ?>

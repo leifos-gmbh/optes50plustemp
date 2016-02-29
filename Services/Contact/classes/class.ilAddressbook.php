@@ -27,7 +27,7 @@
 * Base class for creating and handling mail boxes
 *
 * @author Stefan Meyer <meyer@leifos.com>
-* @version $Id: class.ilAddressbook.php 56504 2014-12-17 10:21:06Z bheyser $
+* @version $Id: class.ilAddressbook.php 57754 2015-02-03 06:52:03Z bheyser $
 *
 */
 
@@ -381,6 +381,55 @@ class ilAddressbook
 	public function getSearchQuery()
 	{
 		return $this->search_query;
+	}
+
+	/**
+	 * @param ilObjUser $usr
+	 */
+	public static function onUserDeletion(ilObjUser $usr)
+	{
+		/**
+		 * @var $ilDB ilDB
+		 */
+		global $ilDB;
+
+		$ilDB->manipulateF(
+			'UPDATE addressbook SET login = NULL, auto_update = %s WHERE login = %s AND email IS NOT NULL',
+			array('integer', 'text'),
+			array(0, $usr->getLogin())
+		);
+
+		$ilDB->manipulateF(
+			'DELETE FROM addressbook_mlist_ass WHERE addr_id IN(
+				SELECT addr_id FROM addressbook WHERE login = %s AND email IS NULL
+			)',
+			array('text'),
+			array($usr->getLogin())
+		);
+
+		$ilDB->manipulateF(
+			'DELETE FROM addressbook WHERE login = %s AND email IS NULL',
+			array('text'),
+			array($usr->getLogin())
+		);
+	}
+
+	/**
+	 * @param string $from
+	 * @param string $to
+	 */
+	public static function onLoginNameChange($from, $to)
+	{
+		/**
+		 * @var $ilDB ilDB
+		 */
+		global $ilDB;
+
+		$ilDB->manipulateF(
+			'UPDATE addressbook SET login = %s WHERE login = %s',
+			array('text', 'text'),
+			array($to, $from)
+		);
 	}
 }
 ?>

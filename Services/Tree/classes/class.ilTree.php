@@ -17,7 +17,7 @@ include_once './Services/Tree/exceptions/class.ilInvalidTreeStructureException.p
 *
 * @author Sascha Hofmann <saschahofmann@gmx.de>
 * @author Stefan Meyer <meyer@leifos.com>
-* @version $Id: class.ilTree.php 56504 2014-12-17 10:21:06Z bheyser $
+* @version $Id: class.ilTree.php 57749 2015-02-03 06:36:22Z bheyser $
 *
 * @ingroup ServicesTree
 */
@@ -1402,7 +1402,7 @@ class ilTree
 			throw new InvalidArgumentException('Missing or empty parameter $a_node_id: '. $a_node_id);
 		}
 		
-		$query = 'SELECT * FROM tree '.
+		$query = 'SELECT * FROM '.$this->table_tree.' '.
 				'WHERE child = '.$ilDB->quote($a_node_id,'integer');
 		$res = $ilDB->query($query);
 		while($row = $res->fetchRow(DB_FETCHMODE_ASSOC))

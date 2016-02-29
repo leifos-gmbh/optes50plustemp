@@ -69,7 +69,7 @@ class ilCourseObjectiveMaterials
 		{
 		#$ilLog->write(__METHOD__.': 2');
 			// Copy action omit ?
-			if(!isset($mappings["$material[ref_id]"]) or !$mappings["$material[ref_id]"])
+			if(!isset($mappings[$material['ref_id']]) or !$mappings[$material['ref_id']])
 			{
 				continue;
 			}
@@ -88,13 +88,17 @@ class ilCourseObjectiveMaterials
 				$ilLog->write(__METHOD__.': Material has been linked. Keeping object id.');
 				$new_obj_id = $material_obj_id;
 			}
-			elseif($material['type'] == 'st')
+			elseif($material['type'] == 'st' or $material['type'] == 'pg')
 			{
+				
+				#$GLOBALS['ilLog']->write(__METHOD__.': '.print_r($material,TRUE));
+				#$GLOBALS['ilLog']->write(__METHOD__.': '.print_r($mappings,TRUE));
+				
 		#$ilLog->write(__METHOD__.': 6');
 				// Chapter assignment
 				$new_material_info = isset($mappings[$material_ref_id.'_'.$material_obj_id]) ?
 					$mappings[$material_ref_id.'_'.$material_obj_id] :
-					array();
+					'';
 				$new_material_arr = explode('_',$new_material_info);
 				if(!isset($new_material_arr[1]) or !$new_material_arr[1])
 				{
@@ -164,6 +168,8 @@ class ilCourseObjectiveMaterials
 	{
 		global $tree,$ilDB;
 		
+		$container_obj_id = ilObject::_lookupObjId($a_container_id);
+		
 		$all_materials = $tree->getSubTree($tree->getNodeData($a_container_id),true);
 		$all_materials = ilUtil::sortArray($all_materials,'title','asc');
 		
@@ -173,7 +179,10 @@ class ilCourseObjectiveMaterials
 			switch($material['type'])
 			{
 				case 'tst':
-					if(ilLOSettings::getInstanceByObjId($a_container_id)->isObjectiveTest($material['child']))
+					
+					include_once './Modules/Course/classes/class.ilCourseObjectiveMaterials.php';
+					$type = ilLOTestAssignments::getInstance($container_obj_id)->getTypeByTest($material['child']);
+					if($type != ilLOSettings::TYPE_TEST_UNDEFINED)
 					{
 						continue;
 					}

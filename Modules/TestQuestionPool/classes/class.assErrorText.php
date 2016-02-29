@@ -16,7 +16,7 @@ require_once './Modules/TestQuestionPool/classes/class.ilUserQuestionResult.php'
  * @author		Grégory Saive <gsaive@databay.de>
  * @author		Maximilian Becker <mbecker@databay.de>
  * 
- * @version		$Id: class.assErrorText.php 56831 2015-01-07 11:22:27Z smeyer $
+ * @version		$Id: class.assErrorText.php 57620 2015-01-28 14:30:43Z bheyser $
  *
  * @ingroup		ModulesTestQuestionPool
  */
@@ -652,6 +652,8 @@ class assErrorText extends assQuestion implements ilObjQuestionScoringAdjustable
 			$items = preg_split("/\s+/", $text);
 			foreach ($items as $idx => $item)
 			{
+				$img = '';
+
 				if(
 					($posHash = strpos($item, '#')) === 0 ||
 					($posOpeningBrackets = strpos($item, '((')) === 0 ||
@@ -751,7 +753,6 @@ class assErrorText extends assQuestion implements ilObjQuestionScoringAdjustable
 							}
 						}
 					}
-					
 
 					$item_stack = array();
 					$start_idx = $passage_start_idx;
@@ -772,7 +773,6 @@ class assErrorText extends assQuestion implements ilObjQuestionScoringAdjustable
 					}
 					if($graphicalOutput)
 					{
-						// @todo: Add images
 						if ($group_selected)
 						{
 							$img = ' <img src="' . ilUtil::getImagePath("icon_ok.svg") . '" alt="' . $this->lng->txt("answer_is_right") . '" title="' . $this->lng->txt("answer_is_right") . '" /> ';
@@ -800,6 +800,7 @@ class assErrorText extends assQuestion implements ilObjQuestionScoringAdjustable
 					continue;
 				}
 
+				// Errors markes with #, group errors (()) are handled above
 				$class = '';
 				$img = '';
 				if($this->isTokenSelected($counter, $selections))
@@ -947,7 +948,7 @@ class assErrorText extends assQuestion implements ilObjQuestionScoringAdjustable
 						$errorobject = $this->errordata[$errorcounter];
 						if (is_object($errorobject))
 						{
-							$passages[$cur_pidx]['score'] = (int) $errorobject->points;
+							$passages[$cur_pidx]['score'] = $errorobject->points;
 							$passages[$cur_pidx]['isError'] = true;
 						}
 						
@@ -1033,7 +1034,7 @@ class assErrorText extends assQuestion implements ilObjQuestionScoringAdjustable
 						$errorobject = $this->errordata[$errorcounter];
 						if (is_object($errorobject))
 						{
-							$passages[$cur_pidx]['score'] = (int) $errorobject->points;
+							$passages[$cur_pidx]['score'] = $errorobject->points;
 						}
 						$errorcounter++;
 					}

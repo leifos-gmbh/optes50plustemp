@@ -19,7 +19,7 @@ include_once("./Services/Utilities/classes/class.ilDOMUtil.php");
  *
  * @author Alex Killing <alex.killing@gmx.de>
  *
- * @version $Id: class.ilPageObjectGUI.php 57074 2015-01-13 13:38:45Z jluetzen $
+ * @version $Id: class.ilPageObjectGUI.php 57749 2015-02-03 06:36:22Z bheyser $
  *
  * @ilCtrl_Calls ilPageObjectGUI: ilPageEditorGUI, ilEditClipboardGUI, ilMDEditorGUI
  * @ilCtrl_Calls ilPageObjectGUI: ilPublicUserProfileGUI, ilNoteGUI, ilNewsItemGUI
@@ -1593,7 +1593,7 @@ return;
 
 		$col_path = ilUtil::getImagePath("col.svg");
 		$row_path = ilUtil::getImagePath("row.svg");
-		$item_path = ilUtil::getImagePath("item.png");
+		$item_path = ilUtil::getImagePath("item.svg");
 
 		if ($this->getOutputMode() != "offline")
 		{

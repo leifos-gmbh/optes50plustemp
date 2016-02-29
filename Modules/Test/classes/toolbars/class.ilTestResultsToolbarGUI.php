@@ -2,6 +2,7 @@
 /* Copyright (c) 1998-2013 ILIAS open source, Extended GPL, see docs/LICENSE */
 
 require_once 'Services/UIComponent/Toolbar/classes/class.ilToolbarGUI.php';
+require_once 'Services/UIComponent/Button/classes/class.ilLinkButton.php';
 
 /**
  * @author	Björn Heyser <bheyser@databay.de>
@@ -51,6 +52,11 @@ class ilTestResultsToolbarGUI extends ilToolbarGUI
 	 */
 	private $participantSelectorOptions = array();
 
+	/**
+	 * @var bool
+	 */
+	private $skillResultButtonEnabled = false;
+
 	public function __construct(ilCtrl $ctrl, ilTemplate $tpl, ilLanguage $lng)
 	{
 		$this->ctrl = $ctrl;
@@ -64,11 +70,28 @@ class ilTestResultsToolbarGUI extends ilToolbarGUI
 	{
 		$this->setId('tst_results_toolbar');
 		
+		if( $this->isSkillResultButtonEnabled() )
+		{
+			require_once 'Modules/Test/classes/class.ilTestSkillEvaluationGUI.php';
+
+			$link = ilLinkButton::getInstance(); // always returns a new instance
+			$link->setUrl($this->ctrl->getLinkTargetByClass('ilTestSkillEvaluationGUI', ilTestSkillEvaluationGUI::CMD_SHOW));
+			$link->setCaption($this->lng->txt("tst_show_comp_results"), false);
+			$this->addButtonInstance($link);
+
+			$this->addSeparator();
+		}
+		
 		$this->addButton($this->lng->txt('print'), 'javascript:window.print();');
 
 		if( strlen($this->getPdfExportLinkTarget()) )
 		{
-			$this->addButton( $this->getPdfExportLabel(), $this->getPdfExportLinkTarget() );
+			require_once 'Services/UIComponent/Button/classes/class.ilLinkButton.php';
+			$link = ilLinkButton::getInstance(); // always returns a new instance
+			$link->setUrl($this->getPdfExportLinkTarget());
+			$link->setCaption($this->getPdfExportLabel(), false);
+			$link->setOmitPreventDoubleSubmission(true);
+			$this->addButtonInstance($link);
 		}
 
 		if( strlen($this->getCertificateLinkTarget()) )
@@ -96,11 +119,10 @@ class ilTestResultsToolbarGUI extends ilToolbarGUI
 			$sel->setOptions($this->getParticipantSelectorOptionsWithHintOption());
 			$this->addInputItem($sel);
 			
-			require_once 'Services/UIComponent/Button/classes/class.ilLinkButton.php';
 			$link = ilLinkButton::getInstance(); // always returns a new instance
 			$link->setUrl('#');
 			$link->setId('ilTestResultParticipantJumper');
-			$link->setCaption($this->lng->txt('tst_res_jump_to_participant_btn'));
+			$link->setCaption($this->lng->txt('tst_res_jump_to_participant_btn'), false);
 			$this->addButtonInstance($link);
 			
 			$this->tpl->addJavaScript('Modules/Test/js/ilTestResultParticipantSelector.js');
@@ -177,5 +199,15 @@ class ilTestResultsToolbarGUI extends ilToolbarGUI
 		}
 
 		return $options;
+	}
+
+	public function isSkillResultButtonEnabled()
+	{
+		return $this->skillResultButtonEnabled;
+	}
+
+	public function setSkillResultButtonEnabled($skillResultButtonEnabled)
+	{
+		$this->skillResultButtonEnabled = $skillResultButtonEnabled;
 	}
 }

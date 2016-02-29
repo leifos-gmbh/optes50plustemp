@@ -176,13 +176,27 @@ class ilLOEditorStatus
 			if(!$this->getInitialTestStatus(false))
 			{
 				$_REQUEST['tt'] = ilLOSettings::TYPE_TEST_INITIAL;
-				return 'testOverview';
+				if($this->getSettings()->hasSeparateInitialTests())
+				{
+					return 'testsOverview';
+				}
+				else
+				{
+					return 'testOverview';
+				}
 			}
 		}
 		if(!$this->getQualifiedTestStatus(false))
 		{
 			$_REQUEST['tt'] = ilLOSettings::TYPE_TEST_QUALIFIED;
-			return 'testOverview';
+			if($this->getSettings()->hasSeparateQualifiedTests())
+			{
+				return 'testsOverview';
+			}
+			else
+			{
+				return 'testOverview';
+			}
 		}
 		if(!$this->getObjectivesStatus(false))
 		{
@@ -251,22 +265,33 @@ class ilLOEditorStatus
 		{
 			$done = $this->getInitialTestStatus();
 
-			$list->addEntry($this->lng->txt('crs_objective_status_itest'),
-				$this->ctrl->getLinkTarget($this->getCmdClass(),'testOverview'),
-				$done
-					? ilChecklistGUI::STATUS_OK
-					: ilChecklistGUI::STATUS_NOT_OK,
-				($this->section == self::SECTION_ITES),
-				$this->getErrorMessages(self::SECTION_ITES)
+			$command = $this->getSettings()->hasSeparateInitialTests() ? 
+					'testsOverview' :
+					'testOverview';
+			
+			$this->ctrl->setParameter($this->getCmdClass(),'tt',  ilLOSettings::TYPE_TEST_INITIAL);
+			$list->addEntry(
+					$this->lng->txt('crs_objective_status_itest'),
+					$this->ctrl->getLinkTarget($this->getCmdClass(),$command),
+					$done
+						? ilChecklistGUI::STATUS_OK
+						: ilChecklistGUI::STATUS_NOT_OK,
+					($this->section == self::SECTION_ITES),
+					$this->getErrorMessages(self::SECTION_ITES)
 			);
 		}
 
 		// Step 4
 		// course qtest
 		$done = $this->getQualifiedTestStatus();
+		
+		$command = $this->getSettings()->hasSeparateQualifiedTests() ? 
+				'testsOverview' :
+				'testOverview';
 
+		$this->ctrl->setParameter($this->getCmdClass(),'tt',  ilLOSettings::TYPE_TEST_QUALIFIED);
 		$list->addEntry($this->lng->txt('crs_objective_status_qtest'),
-			$this->ctrl->getLinkTarget($this->getCmdClass(),'testOverview'),
+			$this->ctrl->getLinkTarget($this->getCmdClass(),$command),
 			$done
 				? ilChecklistGUI::STATUS_OK
 				: ilChecklistGUI::STATUS_NOT_OK,

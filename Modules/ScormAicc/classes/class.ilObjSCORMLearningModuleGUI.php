@@ -13,7 +13,7 @@ require_once("./Modules/ScormAicc/classes/class.ilObjSCORMLearningModule.php");
 * Class ilObjSCORMLearningModuleGUI
 *
 * @author Alex Killing <alex.killing@gmx.de>, Hendrik Holtmann <holtmann@mac.com>
-* $Id: class.ilObjSCORMLearningModuleGUI.php 57074 2015-01-13 13:38:45Z jluetzen $
+* $Id: class.ilObjSCORMLearningModuleGUI.php 57620 2015-01-28 14:30:43Z bheyser $
 *
 * @ilCtrl_Calls ilObjSCORMLearningModuleGUI: ilFileSystemGUI, ilMDEditorGUI, ilPermissionGUI, ilLearningProgressGUI
 * @ilCtrl_Calls ilObjSCORMLearningModuleGUI: ilInfoScreenGUI
@@ -72,20 +72,17 @@ class ilObjSCORMLearningModuleGUI extends ilObjSAHSLearningModuleGUI
 	*/
 	function properties()
 	{
-		global $rbacsystem, $tree, $tpl, $lng, $ilToolbar, $ilCtrl, $ilSetting;
+		global $rbacsystem, $tree, $tpl, $lng, $ilToolbar, $ilCtrl, $ilSetting, $ilTabs;
 
-		//$this->setSubTabs("settings", "general_settings");
-		
 		$lng->loadLanguageModule("style");
+
+		ilObjSAHSLearningModuleGUI::setSettingsSubTabs();
+		$ilTabs->setSubTabActive('cont_settings');
 
 		// view
 		$ilToolbar->addButton($this->lng->txt("view"),
 			"ilias.php?baseClass=ilSAHSPresentationGUI&amp;ref_id=".$this->object->getRefID(),
 			"_blank");
-			
-		// upload new version
-		$ilToolbar->addButton($this->lng->txt("cont_sc_new_version"),
-			$this->ctrl->getLinkTarget($this, "newModuleVersion"));
 
 		include_once("Services/Form/classes/class.ilPropertyFormGUI.php");
 		$this->form = new ilPropertyFormGUI();
@@ -295,6 +292,10 @@ class ilObjSCORMLearningModuleGUI extends ilObjSAHSLearningModuleGUI
 	*/
 	function newModuleVersion()
 	{
+		global $ilTabs;
+		ilObjSAHSLearningModuleGUI::setSettingsSubTabs();
+		$ilTabs->setSubTabActive('cont_sc_new_version');
+
 		$obj_id = ilObject::_lookupObjectId($_GET['ref_id']);
 		$type = ilObjSAHSLearningModule::_lookupSubType($obj_id);
 
@@ -541,7 +542,7 @@ class ilObjSCORMLearningModuleGUI extends ilObjSAHSLearningModuleGUI
 		$ilTabs->setTabActive("cont_tracking_data");
 		$ilTabs->setSubTabActive("cont_tracking_bysco");
 
-		$reports = array('exportSelectedCore','exportSelectedInteractions','exportSelectedObjectives');//,'tracInteractionItem','tracInteractionUser','tracInteractionUserAnswers'
+		$reports = array('exportSelectedCore','exportSelectedInteractions','exportSelectedObjectives','exportSelectedRaw');//,'tracInteractionItem','tracInteractionUser','tracInteractionUserAnswers'
 		$scoSelected = "all";
 		if (isset($_GET["scoSelected"])) $scoSelected = ilUtil::stripSlashes($_GET["scoSelected"]);
 		if (isset($_POST["scoSelected"])) $scoSelected = ilUtil::stripSlashes($_POST["scoSelected"]);
@@ -576,18 +577,6 @@ class ilObjSCORMLearningModuleGUI extends ilObjSAHSLearningModuleGUI
 			$this->tpl->setContent($filter->form->getHTML().$tbl->getHTML());
 		}
 		return true;
-
-		// include_once "./Services/Table/classes/class.ilTableGUI.php";
-
-		// $this->setSubTabs();
-		// $ilTabs->setTabActive("cont_tracking_data");
-		// $ilTabs->setSubTabActive("cont_tracking_bysco");
-
-		// include_once './Modules/ScormAicc/classes/class.ilSCORMTrackingItemsPerScoTableGUI.php';
-		// $tbl = new ilSCORMTrackingItemsPerScoTableGUI($this->object->getId(), $this, 'showTrackingItemsBySco');
-		// $tbl->parse();
-		// $this->tpl->setContent($tbl->getHTML());
-		// return true;
 	}
 
 
@@ -604,7 +593,7 @@ class ilObjSCORMLearningModuleGUI extends ilObjSAHSLearningModuleGUI
 		$ilTabs->setTabActive('cont_tracking_data');
 		$ilTabs->setSubTabActive('cont_tracking_byuser');
 
-		$reports = array('exportSelectedSuccess','exportSelectedCore','exportSelectedInteractions','exportSelectedObjectives');
+		$reports = array('exportSelectedSuccess','exportSelectedCore','exportSelectedInteractions','exportSelectedObjectives','exportSelectedRaw');
 
 		$userSelected = "all";
 		if (isset($_GET["userSelected"])) $userSelected = ilUtil::stripSlashes($_GET["userSelected"]);
@@ -668,7 +657,6 @@ class ilObjSCORMLearningModuleGUI extends ilObjSAHSLearningModuleGUI
 		);
 		$ilToolbar->addButton(
 			$this->lng->txt('cont_export_all'),
-//			$this->ctrl->getLinkTarget($this, 'exportSelectionAll')
 			$this->ctrl->getLinkTarget($this, 'exportAll')
 		);
 
@@ -677,7 +665,7 @@ class ilObjSCORMLearningModuleGUI extends ilObjSAHSLearningModuleGUI
 		$ilTabs->setSubTabActive('cont_tracking_modify');
 
 		include_once './Modules/ScormAicc/classes/class.ilSCORMTrackingUsersTableGUI.php';
-		$tbl = new ilSCORMTrackingUsersTableGUI($this->object->getId(), $this, 'showtrackingItems');
+		$tbl = new ilSCORMTrackingUsersTableGUI($this->object->getId(), $this, 'modifytrackingItems');
 		$tbl->parse();
 		$this->tpl->setContent($tbl->getHTML());
 	}
@@ -689,10 +677,10 @@ class ilObjSCORMLearningModuleGUI extends ilObjSAHSLearningModuleGUI
 	protected function applyUserTableFilter()
 	{
 		include_once './Modules/ScormAicc/classes/class.ilSCORMTrackingUsersTableGUI.php';
-		$tbl = new ilSCORMTrackingUsersTableGUI($this->object->getId(), $this, 'showtrackingItems');
+		$tbl = new ilSCORMTrackingUsersTableGUI($this->object->getId(), $this, 'modifytrackingItems');
 		$tbl->writeFilterToSession();
 		$tbl->resetOffset();
-		$this->showTrackingItems();
+		$this->modifyTrackingItems();
 	}
 
 	/**
@@ -701,10 +689,10 @@ class ilObjSCORMLearningModuleGUI extends ilObjSAHSLearningModuleGUI
 	protected function resetUserTableFilter()
 	{
 		include_once './Modules/ScormAicc/classes/class.ilSCORMTrackingUsersTableGUI.php';
-		$tbl = new ilSCORMTrackingUsersTableGUI($this->object->getId(), $this, 'showtrackingItems');
+		$tbl = new ilSCORMTrackingUsersTableGUI($this->object->getId(), $this, 'modifytrackingItems');
 		$tbl->resetFilter();
 		$tbl->resetOffset();
-		$this->showTrackingItems();
+		$this->modifyTrackingItems();
 	}
 
 	/**
@@ -722,8 +710,8 @@ class ilObjSCORMLearningModuleGUI extends ilObjSAHSLearningModuleGUI
 		$cgui = new ilConfirmationGUI();
 		$cgui->setFormAction($this->ctrl->getFormAction($this));
 		$cgui->setHeaderText($this->lng->txt("info_delete_sure"));
-		$cgui->setCancel($this->lng->txt("cancel"), "cancelDelete");
-		$cgui->setConfirm($this->lng->txt("confirm"), "confirmedDelete");
+		$cgui->setCancel($this->lng->txt("cancel"), "cancelDeleteTracking");
+		$cgui->setConfirm($this->lng->txt("confirm"), "confirmedDeleteTracking");
 
 		foreach($_POST["user"] as $id)
 		{
@@ -746,13 +734,13 @@ class ilObjSCORMLearningModuleGUI extends ilObjSAHSLearningModuleGUI
 	/**
 	 * cancel deletion of export files
 	 */
-	function cancelDelete()
+	function cancelDeleteTracking()
 	{
 		ilUtil::sendInfo($this->lng->txt("msg_cancel"), true);
 		$this->ctrl->redirect($this, "modifyTrackingItems");
 	}
 
-	function confirmedDelete()
+	function confirmedDeleteTracking()
 	{
 		$this->object->deleteTrackingDataOfUsers($_POST["user"]);
 		$this->ctrl->redirect($this, "modifyTrackingItems");
@@ -832,9 +820,8 @@ class ilObjSCORMLearningModuleGUI extends ilObjSAHSLearningModuleGUI
 	 * Show export section for all users
 	 */
 	protected function exportAll()
-//	protected function exportSelectionAll()
 	{
-		$this->exportSelection(self::EXPORT_ALL);
+		$this->object->exportSelected(1);
 	}
 
 	/**
@@ -844,142 +831,21 @@ class ilObjSCORMLearningModuleGUI extends ilObjSAHSLearningModuleGUI
 	{
 		if(!count((array) $_POST['user']))
 		{
-			ilUtil::sendFailure($this->lng->txt('select_one'),true);
-			$this->ctrl->redirect($this,'showTrackingItems');
+			//ilUtil::sendFailure($this->lng->txt('select_one'),true);
+			ilUtil::sendInfo($this->lng->txt("no_checkbox"),true);
+			$this->ctrl->redirect($this,'modifyTrackingItems');
+		} else {
+			$this->object->exportSelected(0,$_POST["user"]);
 		}
-
-		$this->exportSelection(self::EXPORT_SELECTED);
 	}
 
-	/**
-	 * Show export selection
-	 * @param int $a_type
-	 */
-	protected function exportSelection($a_type)
-	{
-		global $ilTabs;
-
-		$ilTabs->clearTargets();
-		$ilTabs->setBackTarget(
-			$this->lng->txt('back'),
-			$this->ctrl->getLinkTarget($this,'showTrackingItems')
-		);
-
-		$form = $this->initExportForm($a_type);
-		$this->tpl->setContent($form->getHTML());
-	}
-	
-	/**
-	 * Init export form
-	 * @param int $a_type 
-	 */
-	protected function initExportForm($a_type)
-	{
-		include_once './Services/Form/classes/class.ilPropertyFormGUI.php';
-
-		$form = new ilPropertyFormGUI();
-		$form->setFormAction($this->ctrl->getFormAction($this,'showTrackingItems'));
-		$form->setTitle($this->lng->txt('cont_export_tracking'));
-		$form->addCommandButton('export', $this->lng->txt('export'));
-		$form->addCommandButton('showTrackingItems', $this->lng->txt('cancel'));
-		
-		$type = new ilRadioGroupInputGUI($this->lng->txt('cont_export_type'), 'type');
-		$type->setRequired(true);
-		$type->setValue(self::EXPORT_TYPE_RAW);
-		$form->addItem($type);
-		
-		$raw = new ilRadioOption($this->lng->txt('cont_export_raw'), self::EXPORT_TYPE_RAW);
-		$type->addOption($raw);
-
-		$suc = new ilRadioOption($this->lng->txt('cont_export_success'), self::EXPORT_TYPE_SUCCESS);
-		$type->addOption($suc);
-
-		$etype = new ilHiddenInputGUI('etype');
-		$etype->setValue($a_type);
-		$form->addItem($etype);
-
-		switch($a_type)
-		{
-			case self::EXPORT_SELECTED:
-				$users = new ilHiddenInputGUI('users');
-				$users->setValue(htmlentities(serialize($_POST['user'])));
-				$form->addItem($users);
-				break;
-		}
-		return $form;
-	}
-	
-	
-	/**
-	 * Do export
-	 */
-	protected function export()
-	{
-		$form = $this->initExportForm(self::EXPORT_UNDEF);
-		if($form->checkInput())
-		{
-			if($form->getInput('type') == self::EXPORT_TYPE_RAW)
-			{
-				if($form->getInput('etype') == self::EXPORT_ALL)
-				{
-					return $this->object->exportSelectedRaw(true);
-				}
-				else
-				{
-					$users = (array) unserialize(html_entity_decode($form->getInput('users')));
-					return $this->object->exportSelectedRaw(false,$users);
-				}
-			}
-			else
-			{
-				if($form->getInput('etype') == self::EXPORT_ALL)
-				{
-					return $this->object->exportSelected(true);
-				}
-				else
-				{
-					$users = (array) unserialize(html_entity_decode($form->getInput('users')));
-					return $this->object->exportSelected(false,$users);
-				}
-			}
-		}
-		ilUtil::sendFailure($this->lng->txt('err_check_input'));
-		$this->ctrl->redirect($this,'showTrackingItems');
-	}
 
 	function decreaseAttempts()
 	{
-		global $ilDB, $ilUser;
-		if (!isset($_POST["user"]))
-		{
+		if (!isset($_POST["user"])) {
 			ilUtil::sendInfo($this->lng->txt("no_checkbox"),true);
 		}
-		
-		foreach ($_POST["user"] as $user)
-		{
-			//first check if there is a package_attempts entry
-			$val_set = $ilDB->queryF('SELECT package_attempts FROM sahs_user WHERE user_id = %s AND obj_id = %s',
-			array('integer','integer'),
-			array($user,$this->object->getID()));
-			
-			$val_rec = $ilDB->fetchAssoc($val_set);
-			
-			if ($val_rec["package_attempts"] != null && $val_rec["package_attempts"] != 0) 
-			{
-				$new_rec = 0;
-				//decrease attempt by 1
-				if ((int)$val_rec["package_attempts"] > 0) $new_rec = (int)$val_rec["package_attempts"]-1;
-				$ilDB->manipulateF('UPDATE sahs_user SET package_attempts = %s WHERE user_id = %s AND obj_id = %s',
-					array('integer','integer','integer'),
-					array($new_rec,$user,$this->object->getID()));
-
-				//following 2 lines were before 4.4 only for SCORM 1.2
-				include_once("./Services/Tracking/classes/class.ilLPStatusWrapper.php");
-				ilLPStatusWrapper::_updateStatus($this->object->getId(), $user);
-			}
-		}
-
-		//$this->ctrl->saveParameter($this, "cdir");
+		$this->object->decreaseAttemptsForUser($_POST["user"]);
 		$this->ctrl->redirect($this, "modifyTrackingItems");
 	}
 	
@@ -1069,6 +935,7 @@ class ilObjSCORMLearningModuleGUI extends ilObjSAHSLearningModuleGUI
 			get_class($this));
 	}
 
+	
 	/**
 	 * Manage offline mode for users
 	 * @global ilTabs $ilTabs

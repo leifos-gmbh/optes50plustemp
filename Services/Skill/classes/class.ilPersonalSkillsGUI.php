@@ -56,6 +56,49 @@ class ilPersonalSkillsGUI
 	{
 		$this->profile_id = $a_val;
 	}
+
+	// PATCH BEGIN: optes44+
+	private function confirmDeleteOwnSkillData()
+	{
+		global $ilCtrl, $tpl;
+
+		include_once("./Services/Utilities/classes/class.ilConfirmationGUI.php");
+
+		$c = new ilConfirmationGUI();
+		$c->setHeaderText('WIRKLICH ALLE KOMPETENZ ERHEBUNGEN LÖSCHEN ???');
+		$c->setFormAction($ilCtrl->getFormAction($this));
+		$c->setCancel('NEIN', '');
+		$c->setConfirm('ok', 'performDeleteOwnSkillData');
+		
+		$tpl->setContent($c->getHTML());
+	}
+	private function performDeleteOwnSkillData()
+	{
+		global $ilDB, $ilUser, $ilCtrl, $ilClientIniFile;
+
+		if( !$ilClientIniFile->variableExists('system', 'TESTMODE') )
+		{
+			$ilCtrl->redirect($this);
+		}
+		
+		if( $ilClientIniFile->readVariable('system', 'TESTMODE') != 1 )
+		{
+			$ilCtrl->redirect($this);
+		}
+
+		$ilDB->manipulateF(
+			"DELETE FROM skl_user_has_level WHERE user_id = %s",
+			array('integer'), array($ilUser->getId())
+		);
+		
+		$ilDB->manipulateF(
+			"DELETE FROM skl_user_skill_level WHERE user_id = %s",
+			array('integer'), array($ilUser->getId())
+		);
+
+		$ilCtrl->redirect($this);
+	}
+	// PATCH END: optes44+
 	
 	/**
 	 * Get profile id
@@ -163,7 +206,23 @@ class ilPersonalSkillsGUI
 		$ilToolbar->addFormButton($lng->txt("skmg_add_skill"),
 			"listSkillsForAdd");
 		$ilToolbar->setFormAction($ilCtrl->getFormAction($this));
-		
+
+		// PATCH BEGIN: optes44+
+		if( $GLOBALS['ilClientIniFile']->variableExists('system', 'TESTMODE') )
+		{
+			if( $GLOBALS['ilClientIniFile']->readVariable('system', 'TESTMODE') == 1 )
+			{
+				/* @var ilToolbarGUI $ilToolbar */
+				
+				$ilToolbar->addSeparator();
+				
+				$ilToolbar->addLink(
+					'LÖSCHE ALLE KOMPETENZ-ERHEBUNGEN', $ilCtrl->getLinkTarget($this, 'confirmDeleteOwnSkillData')
+				);
+			}
+		}
+		// PATCH END: optes44+
+			
 		$skills = ilPersonalSkill::getSelectedUserSkills($ilUser->getId());
 		$html = "";
 		foreach ($skills as $s)
@@ -311,12 +370,12 @@ $bs["tref"] = $bs["tref_id"];
 					: false;
 					
 				// get all object triggered entries and render them
-				foreach ($skill->getAllLevelEntriesOfUser($bs["tref"] , $user->getId()) as $level_entry)
+				foreach ($skill->getAllHistoricLevelEntriesOfUser($bs["tref"] , $user->getId(), ilBasicSkill::EVAL_BY_ALL) as $level_entry)
 				{
 					// render the self evaluation at the correct position within the list of object triggered entries
 					if ($se_date > $level_entry["status_date"] && !$se_rendered)
 					{
-						$this->renderSelfEvaluationRow($tpl, $level_data, $a_top_skill_id, $bs["id"], $bs["tref"], $user->getId());
+//						$this->renderSelfEvaluationRow($tpl, $level_data, $a_top_skill_id, $bs["id"], $bs["tref"], $user->getId());
 						$se_rendered = true;
 					}
 					$this->renderObjectEvalRow($tpl, $level_data, $level_entry);
@@ -325,7 +384,7 @@ $bs["tref"] = $bs["tref_id"];
 				// if not rendered yet, render self evaluation now
 				if (!$se_rendered)
 				{
-					$this->renderSelfEvaluationRow($tpl, $level_data, $a_top_skill_id, $bs["id"], $bs["tref"], $user->getId());
+//					$this->renderSelfEvaluationRow($tpl, $level_data, $a_top_skill_id, $bs["id"], $bs["tref"], $user->getId());
 				}
 				$this->renderSuggestedResources($tpl, $level_data, $bs["id"], $bs["tref"]);
 			}
@@ -1060,7 +1119,7 @@ $bs["tref"] = $bs["tref_id"];
 			// target level
 			$cd = $chart->getDataInstance();
 			$cd->setLabel($lng->txt("skmg_target_level"));
-			$cd->setFill("true", "#A0A0A0");
+			$cd->setFill(true, "#A0A0A0");
 
 			// other users
 			$cd2 = $chart->getDataInstance();
@@ -1076,14 +1135,14 @@ $bs["tref"] = $bs["tref_id"];
 			{
 				$cd2->setLabel(ilObject::_lookupTitle($this->gap_mode_obj_id));
 			}
-			$cd2->setFill("true", "#8080FF");
+			$cd2->setFill(true, "#8080FF");
 			
 			// self evaluation
 			if ($incl_self_eval)
 			{
 				$cd3 = $chart->getDataInstance();
 				$cd3->setLabel($lng->txt("skmg_self_evaluation"));
-				$cd3->setFill("true", "#FF8080");
+				$cd3->setFill(true, "#FF8080");
 			}
 			
 			// fill in data
@@ -1114,6 +1173,12 @@ $bs["tref"] = $bs["tref_id"];
 			$chart->setLegend($lg);
 			
 			$chart_html = $chart->getHTML();
+			
+			include_once("./Services/UIComponent/Panel/classes/class.ilPanelGUI.php");
+			$pan = ilPanelGUI::getInstance();
+			$pan->setPanelStyle(ilPanelGUI::PANEL_STYLE_PRIMARY);
+			$pan->setBody($chart_html);
+			$chart_html = $pan->getHTML();
 		}
 
 		$stree = new ilSkillTree();
@@ -1457,6 +1522,8 @@ $bs["tref"] = $bs["tref_id"];
 	 */
 	function renderObjectEvalRow($a_tpl, $a_levels, $a_level_entry)
 	{
+		global $lng;
+
 		$se_level = $a_level_entry["level_id"];
 		
 		// check, if current self eval level is in current level data
@@ -1494,7 +1561,18 @@ $bs["tref"] = $bs["tref_id"];
 		
 		$a_tpl->setCurrentBlock("value_row");
 		ilDatePresentation::setUseRelativeDates(false);
-		$a_tpl->setVariable("TXT_VAL_TITLE", $a_level_entry["trigger_title"].
+		if ($a_level_entry["self_eval"] == 1 && $a_level_entry["trigger_obj_id"] == 0)
+		{
+			$title = $lng->txt("skmg_self_evaluation");
+		}
+		else
+		{
+			$title = ($a_level_entry["trigger_obj_id"] > 0 && $a_level_entry["self_eval"] == 1)
+				? $a_level_entry["trigger_title"]." (".$lng->txt("skmg_self_evaluation").")"
+				: $a_level_entry["trigger_title"];
+		}
+
+		$a_tpl->setVariable("TXT_VAL_TITLE", $title.
 			", ".ilDatePresentation::formatDate(new ilDateTime($a_level_entry["status_date"], IL_CAL_DATETIME)));
 		ilDatePresentation::setUseRelativeDates(true);
 		$a_tpl->parseCurrentBlock();		

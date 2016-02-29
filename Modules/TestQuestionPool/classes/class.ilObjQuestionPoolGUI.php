@@ -15,7 +15,7 @@ require_once './Modules/Test/classes/class.ilObjTest.php';
  * @author		Helmut Schottmüller <helmut.schottmueller@mac.com>
  * @author		Björn Heyser <bheyser@databay.de>
  * 
- * @version		$Id: class.ilObjQuestionPoolGUI.php 56831 2015-01-07 11:22:27Z smeyer $
+ * @version		$Id: class.ilObjQuestionPoolGUI.php 59668 2015-06-30 11:06:40Z bheyser $
  *
  * @ilCtrl_Calls ilObjQuestionPoolGUI: ilAssQuestionPageGUI, ilQuestionBrowserTableGUI, ilToolbarGUI
  * @ilCtrl_Calls ilObjQuestionPoolGUI: assMultipleChoiceGUI, assClozeTestGUI, assMatchingQuestionGUI
@@ -27,6 +27,7 @@ require_once './Modules/Test/classes/class.ilObjTest.php';
  * @ilCtrl_Calls ilObjQuestionPoolGUI: ilObjQuestionPoolSettingsGeneralGUI, assFormulaQuestionGUI
  * @ilCtrl_Calls ilObjQuestionPoolGUI: ilAssQuestionPreviewGUI
  * @ilCtrl_Calls ilObjQuestionPoolGUI: assKprimChoiceGUI
+ * @ilCtrl_Calls ilObjQuestionPoolGUI: ilQuestionPoolSkillAdministrationGUI
  *
  * @ingroup ModulesTestQuestionPool
  * 
@@ -75,7 +76,7 @@ class ilObjQuestionPoolGUI extends ilObjectGUI
 	 */
 	function executeCommand()
 	{
-		global $ilUser, $ilLocator, $ilAccess, $ilNavigationHistory, $tpl, $ilCtrl, $ilErr, $ilTabs, $lng, $ilDB, $ilPluginAdmin;
+		global $ilUser, $ilLocator, $ilAccess, $ilNavigationHistory, $tpl, $ilCtrl, $ilErr, $ilTabs, $lng, $ilDB, $ilPluginAdmin, $ilias;
 		
 		if ((!$ilAccess->checkAccess("read", "", $_GET["ref_id"])) && (!$ilAccess->checkAccess("visible", "", $_GET["ref_id"])))
 		{
@@ -302,6 +303,17 @@ class ilObjQuestionPoolGUI extends ilObjectGUI
 				
 				break;
 			
+			case 'ilquestionpoolskilladministrationgui':
+
+				require_once 'Modules/TestQuestionPool/classes/class.ilQuestionPoolSkillAdministrationGUI.php';
+				$gui = new ilQuestionPoolSkillAdministrationGUI(
+					$ilias, $ilCtrl, $ilAccess, $ilTabs, $tpl, $lng, $ilDB, $ilPluginAdmin, $this->object, $this->ref_id
+				);
+				
+				$this->ctrl->forwardCommand($gui);
+				
+				break;
+				
 			case 'ilquestionbrowsertablegui':
 				$this->ctrl->forwardCommand($this->buildQuestionBrowserTableGUI($taxIds = array())); // no tax ids required
 				break;
@@ -1359,6 +1371,7 @@ class ilObjQuestionPoolGUI extends ilObjectGUI
 			case "ilpermissiongui":
 			case "ilmdeditorgui":
 			case "ilquestionpoolexportgui":
+			case "ilquestionpoolskilladministrationgui":
 				break;
 			
 			case 'ilobjtaxonomygui':
@@ -1433,6 +1446,19 @@ class ilObjQuestionPoolGUI extends ilObjectGUI
 					'settings', $this->ctrl->getLinkTargetByClass('ilObjQuestionPoolSettingsGeneralGUI'),
 					array(), array('ilObjQuestionPoolSettingsGeneralGUI', 'ilObjTaxonomyGUI')
 			);
+
+			// skill service
+			if( $this->object->isSkillServiceEnabled() && ilObjQuestionPool::isSkillManagementGloballyActivated() )
+			{
+				require_once 'Modules/TestQuestionPool/classes/class.ilAssQuestionSkillAssignmentsGUI.php';
+
+				$link = $this->ctrl->getLinkTargetByClass(
+					array('ilQuestionPoolSkillAdministrationGUI', 'ilAssQuestionSkillAssignmentsGUI'),
+					ilAssQuestionSkillAssignmentsGUI::CMD_SHOW_SKILL_QUEST_ASSIGNS
+				);
+
+				$tabs_gui->addTarget('qpl_tab_competences', $link, array(), array());
+			}
 		}
 
 		// print view

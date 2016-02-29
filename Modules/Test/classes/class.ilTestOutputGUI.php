@@ -13,7 +13,7 @@ require_once './Modules/Test/classes/class.ilTestPlayerAbstractGUI.php';
  * @author		Björn Heyser <bheyser@databay.de>
  * @author		Maximilian Becker <mbecker@databay.de>
  *          
- * @version		$Id: class.ilTestOutputGUI.php 57074 2015-01-13 13:38:45Z jluetzen $
+ * @version		$Id: class.ilTestOutputGUI.php 59695 2015-06-30 14:16:46Z bheyser $
  * 
  * @inGroup		ModulesTest
  */
@@ -47,7 +47,9 @@ abstract class ilTestOutputGUI extends ilTestPlayerAbstractGUI
 				$this->ctrl->setParameter($this, 'gotosequence', $matches[1]);
 			}
 		}
-		
+
+		$this->initAssessmentSettings();
+
 		$testSessionFactory = new ilTestSessionFactory($this->object);
 		$this->testSession = $testSessionFactory->getSession($_GET['active_id']);
 		
@@ -56,7 +58,7 @@ abstract class ilTestOutputGUI extends ilTestPlayerAbstractGUI
 		$this->initProcessLocker($this->testSession->getActiveId());
 		
 		$testSequenceFactory = new ilTestSequenceFactory($ilDB, $lng, $ilPluginAdmin, $this->object);
-		$this->testSequence = $testSequenceFactory->getSequence($this->testSession);
+		$this->testSequence = $testSequenceFactory->getSequenceByTestSession($this->testSession);
 		$this->testSequence->loadFromDb();
 		$this->testSequence->loadQuestions();
 
@@ -86,6 +88,7 @@ abstract class ilTestOutputGUI extends ilTestPlayerAbstractGUI
 			case 'iltestsubmissionreviewgui':
 				require_once './Modules/Test/classes/class.ilTestSubmissionReviewGUI.php';
 				$gui = new ilTestSubmissionReviewGUI($this, $this->object, $this->testSession);
+				$gui->setObjectiveOrientedContainer($this->getObjectiveOrientedContainer());
 				$ret = $this->ctrl->forwardCommand($gui);
 				break;
 			
@@ -286,7 +289,7 @@ abstract class ilTestOutputGUI extends ilTestPlayerAbstractGUI
 				// ensure existing test session
 				$this->testSession->setUserId($ilUser->getId());
 				$this->testSession->setAnonymousId($_SESSION["tst_access_code"][$this->object->getTestId()]);
-				$this->testSession->setObjectiveOrientedContainerId($this->getObjectiveOrientedContainerId());
+				$this->testSession->setObjectiveOrientedContainerId($this->getObjectiveOrientedContainer()->getObjId());
 				$this->testSession->saveToDb();
 				
 				$active_id = $this->testSession->getActiveId();
@@ -466,6 +469,23 @@ abstract class ilTestOutputGUI extends ilTestPlayerAbstractGUI
 		}
 		
 		$question_gui = $this->object->createQuestionGUI("", $questionId);
+		
+		if( !is_object($question_gui) )
+		{
+			global $ilLog;
+
+			$ilLog->write(
+				"INV SEQ: active={$this->testSession->getActiveId()} qId=$questionId seq=$sequence "
+				.serialize($this->testSequence)
+			);
+			
+			$ilLog->logStack('INV SEQ');
+			
+			$this->ctrl->setParameter($this, 'gotosequence', $this->testSequence->getFirstSequence());
+			$this->ctrl->setParameter($this, 'activecommand', 'gotoquestion');
+			$this->ctrl->redirect($this, 'redirectQuestion');
+		}
+		
 		$question_gui->setTargetGui($this);
 
 		if ($this->object->getJavaScriptOutput())
@@ -474,7 +494,8 @@ abstract class ilTestOutputGUI extends ilTestPlayerAbstractGUI
 		}
 
 		$is_postponed = $this->testSequence->isPostponedQuestion($question_gui->object->getId());
-		$is_optional = $this->testSequence->isQuestionOptional($question_gui->object->getId());
+		
+		$this->ctrl->setParameter($this, "sequence", "$sequence");
 		$formaction = $this->ctrl->getFormAction($this, "gotoQuestion");
 
 		$question_gui->setSequenceNumber($this->testSequence->getPositionOfSequence($sequence));
@@ -484,6 +505,7 @@ abstract class ilTestOutputGUI extends ilTestPlayerAbstractGUI
 		$headerBlockBuilder = new ilTestQuestionHeaderBlockBuilder($this->lng);
 		$headerBlockBuilder->setHeaderMode($this->object->getTitleOutput());
 		$headerBlockBuilder->setQuestionTitle($question_gui->object->getTitle());
+		$headerBlockBuilder->setQuestionPoints($question_gui->object->getPoints());
 		$headerBlockBuilder->setQuestionPosition($this->testSequence->getPositionOfSequence($sequence));
 		$headerBlockBuilder->setQuestionCount($this->testSequence->getUserQuestionCount());
 		$headerBlockBuilder->setQuestionPostponed($this->testSequence->isPostponedQuestion($questionId));
@@ -517,6 +539,22 @@ abstract class ilTestOutputGUI extends ilTestPlayerAbstractGUI
 		if (($directfeedback) && ($this->object->getSpecificAnswerFeedback()))
 		{
 			$answer_feedback = TRUE;
+		}
+		
+		if( $this->testSequence->isQuestionOptional($question_gui->object->getId()) )
+		{
+			$info = $this->lng->txt('tst_wf_info_optional_question');
+			
+			if( $this->object->isFixedTest() )
+			{
+				$info .= ' '.$this->lng->txt('tst_wf_info_answer_adopted_from_prev_pass');
+			}
+			else
+			{
+				$info .= ' '.$this->lng->txt('tst_wf_info_answer_not_adopted');
+			}
+			
+			ilUtil::sendInfo($info);
 		}
 
 		if( $this->isParticipantsAnswerFixed($questionId) )
@@ -782,6 +820,11 @@ abstract class ilTestOutputGUI extends ilTestPlayerAbstractGUI
 					$objectivesAdapter = ilLOTestQuestionAdapter::getInstance($this->testSession);
 					$objectivesAdapter->updateQuestionResult($this->testSession, $question_gui->object);
 				}
+				
+				if( $this->object->isSkillServiceToBeConsidered() )
+				{
+					$this->handleSkillTriggering($this->testSession);
+				}
 			}
 		}
 		if ($this->saveResult == FALSE)
@@ -931,27 +974,6 @@ abstract class ilTestOutputGUI extends ilTestPlayerAbstractGUI
 		}
 		
 		$this->processLocker->releaseRandomPassBuildLock();
-	}
-
-	protected function getObjectiveOrientedContainerId()
-	{
-		require_once 'Modules/Course/classes/Objectives/class.ilLOSettings.php';
-		return (int)ilLOSettings::isObjectiveTest($this->testSession->getRefId());
-	}
-	
-	protected function customRedirectRequired()
-	{
-		return $this->testSession->isObjectiveOriented();
-	}
-	
-	protected function performCustomRedirect()
-	{
-		$containerRefId = current(ilObject::_getAllReferences($this->testSession->getObjectiveOrientedContainerId()));
-		
-		require_once 'Services/Link/classes/class.ilLink.php';
-		$redirectTarget = ilLink::_getLink($containerRefId);
-
-		ilUtil::redirect($redirectTarget);
 	}
 	
 	protected function adoptUserSolutionsFromPreviousPass()

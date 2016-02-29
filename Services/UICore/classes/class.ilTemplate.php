@@ -6,7 +6,7 @@
 * special template class to simplify handling of ITX/PEAR
 * @author	Stefan Kesseler <skesseler@databay.de>
 * @author	Sascha Hofmann <shofmann@databay.de>
-* @version	$Id: class.ilTemplate.php 57074 2015-01-13 13:38:45Z jluetzen $
+* @version	$Id: class.ilTemplate.php 57749 2015-02-03 06:36:22Z bheyser $
 */
 class ilTemplate extends ilTemplateX
 {
@@ -874,7 +874,7 @@ class ilTemplate extends ilTemplateX
             if (ilObjLanguageAccess::_checkTranslate() and !ilObjLanguageAccess::_isPageTranslation())
             {
                 ilObjLanguageAccess::_saveUsages();
-                $link_items[ilObjLanguageAccess::_getTranslationLink()] = array($lng->txt('translation'), false);
+                $link_items[ilObjLanguageAccess::_getTranslationLink()] = array($lng->txt('translation'), true);
             }
         }
 
@@ -2089,12 +2089,12 @@ class ilTemplate extends ilTemplateX
 			{
 				if ($this->tree_flat_mode == "tree")
 				{
-					$this->setVariable("IMG_TREE",ilUtil::getImagePath("ic_sidebar_left.png"));
+					$this->setVariable("IMG_TREE",ilUtil::getImagePath("icon_sidebar_on.svg"));
 					$this->setVariable("RIGHT", "Right");
 				}
 				else
 				{
-					$this->setVariable("IMG_TREE",ilUtil::getImagePath("ic_sidebar_right.png"));
+					$this->setVariable("IMG_TREE",ilUtil::getImagePath("icon_sidebar_on.svg"));
 					$this->setVariable("RIGHT", "Right");
 				}
 			}
@@ -2102,11 +2102,11 @@ class ilTemplate extends ilTemplateX
 			{
 				if ($this->tree_flat_mode == "tree")
 				{
-					$this->setVariable("IMG_TREE",ilUtil::getImagePath("ic_sidebar_right.png"));
+					$this->setVariable("IMG_TREE",ilUtil::getImagePath("icon_sidebar_on.svg"));
 				}
 				else
 				{
-					$this->setVariable("IMG_TREE",ilUtil::getImagePath("ic_sidebar_left.png"));
+					$this->setVariable("IMG_TREE",ilUtil::getImagePath("icon_sidebar_on.svg"));
 				}
 			}
 			$this->setVariable("ALT_TREE",$lng->txt($this->tree_flat_mode."view"));

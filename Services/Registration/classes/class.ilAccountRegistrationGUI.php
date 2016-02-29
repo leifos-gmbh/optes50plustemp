@@ -8,7 +8,7 @@
 * Class ilAccountRegistrationGUI
 *
 * @author Stefan Meyer <smeyer.ilias@gmx.de>
-* @version $Id: class.ilAccountRegistrationGUI.php 54485 2014-10-22 12:16:13Z fwolf $
+* @version $Id: class.ilAccountRegistrationGUI.php 57331 2015-01-22 10:14:28Z jluetzen $
 *
 * @ilCtrl_Calls ilAccountRegistrationGUI:
 *
@@ -841,7 +841,7 @@ class ilAccountRegistrationGUI
 		 */
 		global $lng;
 
-		ilStartUpGUI::initStartUpTemplate(array('tpl.usr_registered.html', 'Services/Registration'), true);
+		ilStartUpGUI::initStartUpTemplate(array('tpl.usr_registered.html', 'Services/Registration'), false);
 		$this->tpl->setVariable('TXT_PAGEHEADLINE', $this->lng->txt('registration'));
 
 		$this->tpl->setVariable("TXT_WELCOME", $lng->txt("welcome") . ", " . $this->userObj->getTitle() . "!");

@@ -7,7 +7,7 @@ require_once 'Services/UIComponent/Glyph/classes/class.ilGlyphGUI.php';
 * This class represents a single choice wizard property in a property form.
 *
 * @author Helmut Schottmüller <ilias@aurealis.de> 
-* @version $Id: class.ilAnswerWizardInputGUI.php 55306 2014-11-19 09:02:42Z bheyser $
+* @version $Id: class.ilAnswerWizardInputGUI.php 59700 2015-06-30 14:34:35Z bheyser $
 * @ingroup	ServicesForm
 */
 class ilAnswerWizardInputGUI extends ilTextInputGUI
@@ -257,7 +257,7 @@ class ilAnswerWizardInputGUI extends ilTextInputGUI
 	{
 		global $lng;
 		
-		$tpl = new ilTemplate("tpl.prop_answerwizardinput.html", true, true, "Modules/TestQuestionPool");
+		$tpl = new ilTemplate($this->getTemplate(), true, true, "Modules/TestQuestionPool");
 		$i = 0;
 		foreach ($this->values as $value)
 		{
@@ -331,8 +331,8 @@ class ilAnswerWizardInputGUI extends ilTextInputGUI
 		}
 
 		$tpl->setVariable("ELEMENT_ID", $this->getPostVar());
-		$tpl->setVariable("ANSWER_TEXT", $lng->txt('answer_text'));
-		$tpl->setVariable("POINTS_TEXT", $lng->txt('points'));
+		$tpl->setVariable("ANSWER_TEXT", $this->getTextInputLabel($lng));
+		$tpl->setVariable("POINTS_TEXT", $this->getPointsInputLabel($lng));
 		$tpl->setVariable("COMMANDS_TEXT", $lng->txt('actions'));
 
 		$a_tpl->setCurrentBlock("prop_generic");
@@ -342,5 +342,31 @@ class ilAnswerWizardInputGUI extends ilTextInputGUI
 		global $tpl;
 		$tpl->addJavascript("./Services/Form/js/ServiceFormWizardInput.js");
 		$tpl->addJavascript("./Modules/TestQuestionPool/templates/default/answerwizard.js");
+	}
+
+	/**
+	 * @param $lng
+	 * @return mixed
+	 */
+	protected function getTextInputLabel($lng)
+	{
+		return $lng->txt('answer_text');
+	}
+
+	/**
+	 * @param $lng
+	 * @return mixed
+	 */
+	protected function getPointsInputLabel($lng)
+	{
+		return $lng->txt('points');
+	}
+
+	/**
+	 * @return string
+	 */
+	protected function getTemplate()
+	{
+		return "tpl.prop_answerwizardinput.html";
 	}
 }

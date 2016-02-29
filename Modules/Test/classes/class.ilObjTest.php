@@ -11,7 +11,7 @@ require_once 'Modules/Test/interfaces/interface.ilEctsGradesEnabled.php';
  *
  * @author		Helmut Schottmüller <helmut.schottmueller@mac.com>
  * @author		Björn Heyser <bheyser@databay.de>
- * @version		$Id: class.ilObjTest.php 57112 2015-01-14 12:04:41Z bheyser $
+ * @version		$Id: class.ilObjTest.php 59699 2015-06-30 14:28:18Z bheyser $
  *
  * @defgroup ModulesTest Modules/Test
  * @extends ilObject
@@ -115,12 +115,17 @@ class ilObjTest extends ilObject implements ilMarkSchemaAware, ilEctsGradesEnabl
   	var $questions;
 
 	/**
-* An introduction text to give users more information
-* on the test.
-*
-* @var string
-*/
-  	var $introduction;
+	 * @var bool
+	 */
+	protected $introductionEnabled;
+
+	/**
+	 * An introduction text to give users more information
+	 * on the test.
+	 *
+	 * @var string
+	 */
+	protected $introduction;
 
 	/**
 * Defines the mark schema
@@ -230,18 +235,28 @@ class ilObjTest extends ilObject implements ilMarkSchemaAware, ilEctsGradesEnabl
 	var $reset_processing_time;
 
 	/**
-* The starting time in database timestamp format which defines the earliest starting time for the test
-*
-* @var string
-*/
-  	var $starting_time;
+	 * @var bool
+	 */
+	protected $starting_time_enabled;
 
 	/**
-* The ending time in database timestamp format which defines the latest ending time for the test
-*
-* @var string
-*/
-  	var $ending_time;
+	 * The starting time in database timestamp format which defines the earliest starting time for the test
+	 *
+	 * @var string
+	 */
+	protected $starting_time;
+
+	/**
+	 * @var bool
+	 */
+	protected $ending_time_enabled;
+
+	/**
+	 * The ending time in database timestamp format which defines the latest ending time for the test
+	 *
+	 * @var string
+	 */
+	protected $ending_time;
 
 	/**
 	 * Indicates if ECTS grades will be used
@@ -314,25 +329,35 @@ class ilObjTest extends ilObject implements ilMarkSchemaAware, ilEctsGradesEnabl
 	var $score_cutting;
 
 	/**
-* Password access to enter the test
-*
-* @var string
-*/
-	var $password;
+	 * @var bool
+	 */
+	protected $passwordEnabled;
 
 	/**
-* number of allowed users for the test
-*
-* @var int
-*/
-	var $allowedUsers;
+	 * Password access to enter the test
+	 *
+	 * @var string
+	 */
+	protected $password;
 
 	/**
-* inactivity time gap of the allowed users to let new users into the test
-*
-* @var int
-*/
-	var $allowedUsersTimeGap;
+	 * @var bool
+	 */
+	protected $limitUsersEnabled;
+
+	/**
+	 * number of allowed users for the test
+	 *
+	 * @var int
+	 */
+	protected $allowedUsers;
+
+	/**
+	 * inactivity time gap of the allowed users to let new users into the test
+	 *
+	 * @var int
+	 */
+	protected $allowedUsersTimeGap;
 
 	/**
 * visiblity settings for a test certificate
@@ -570,6 +595,7 @@ class ilObjTest extends ilObject implements ilMarkSchemaAware, ilEctsGradesEnabl
 		
 		$this->test_id = -1;
 		$this->author = $ilUser->fullname;
+		$this->introductionEnabled = false;
 		$this->introduction = "";
 		$this->questions = array();
 		$this->sequence_settings = TEST_FIXED_SEQUENCE;
@@ -583,7 +609,7 @@ class ilObjTest extends ilObject implements ilMarkSchemaAware, ilEctsGradesEnabl
 		$this->title_output = 0;
 		$this->starting_time = "";
 		$this->ending_time = "";
-		$this->processing_time = "00:00:00";
+		$this->processing_time = "";
 		$this->enable_processing_time = "0";
 		$this->reset_processing_time = 0;
 		$this->ects_output = FALSE;
@@ -1258,6 +1284,7 @@ class ilObjTest extends ilObject implements ilMarkSchemaAware, ilEctsGradesEnabl
 				'test_id' => array('integer', $next_id),
 				'obj_fi' => array('integer', $this->getId()),
 				'author' => array('text', $this->getAuthor()),
+				'intro_enabled' => array('integer', (int)$this->isIntroductionEnabled()),
 				'introduction' => array('text', ilRTE::_replaceMediaObjectImageSrc($this->getIntroduction(), 0)),
 				'finalstatement' => array('text', ilRTE::_replaceMediaObjectImageSrc($this->getFinalStatement(), 0)),
 				'showinfo' => array('integer', $this->getShowInfo()),
@@ -1281,7 +1308,9 @@ class ilObjTest extends ilObject implements ilMarkSchemaAware, ilEctsGradesEnabl
 				'enable_processing_time' => array('text', $this->getEnableProcessingTime()),
 				'reset_processing_time' => array('integer', $this->getResetProcessingTime()),
 				'reporting_date' => array('text', $this->getReportingDate()),
+				'starting_time_enabled' => array('integer', $this->isStartingTimeEnabled()),
 				'starting_time' => array('text', $this->getStartingTime()),
+				'ending_time_enabled' => array('integer', $this->isEndingTimeEnabled()),
 				'ending_time' => array('text', $this->getEndingTime()),
 				'complete' => array('text', $this->isComplete($testQuestionSetConfig)),
 				'ects_output' => array('text', $this->getECTSOutput()),
@@ -1298,11 +1327,13 @@ class ilObjTest extends ilObject implements ilMarkSchemaAware, ilEctsGradesEnabl
 				'shuffle_questions' => array('text', $this->getShuffleQuestions()),
 				'results_presentation' => array('integer', $this->getResultsPresentation()),
 				'show_summary' => array('integer', $this->getListOfQuestionsSettings()),
+				'password_enabled' => array('integer', (int)$this->isPasswordEnabled()),
 				'password' => array('text', $this->getPassword()),
+				'limit_users_enabled' => array('integer', (int)$this->isLimitUsersEnabled()),
 				'allowedusers' => array('integer', $this->getAllowedUsers()),
+				'alloweduserstimegap' => array('integer', $this->getAllowedUsersTimeGap()),
 				'mailnottype' => array('integer', $this->getMailNotificationType()),
 				'exportsettings' => array('integer', $this->getExportSettings()),
-				'alloweduserstimegap' => array('integer', $this->getAllowedUsersTimeGap()),
 				'certificate_visibility' => array('text', $this->getCertificateVisibility()),
 				'mailnotification' => array('integer', $this->getMailNotification()),
 				'created' => array('integer', time()),
@@ -1373,6 +1404,7 @@ class ilObjTest extends ilObject implements ilMarkSchemaAware, ilEctsGradesEnabl
 			$ilDB->update('tst_tests',
 					array(
 						'author' => array('text', $this->getAuthor()),
+						'intro_enabled' => array('integer', (int)$this->isIntroductionEnabled()),
 						'introduction' => array('text', ilRTE::_replaceMediaObjectImageSrc($this->getIntroduction(), 0)),
 						'finalstatement' => array('text', ilRTE::_replaceMediaObjectImageSrc($this->getFinalStatement(), 0)),
 						'showinfo' => array('integer', $this->getShowInfo()),
@@ -1396,7 +1428,9 @@ class ilObjTest extends ilObject implements ilMarkSchemaAware, ilEctsGradesEnabl
 						'enable_processing_time' => array('text', $this->getEnableProcessingTime()),
 						'reset_processing_time' => array('integer', $this->getResetProcessingTime()),
 						'reporting_date' => array('text', $this->getReportingDate()),
+						'starting_time_enabled' => array('integer', $this->isStartingTimeEnabled()),
 						'starting_time' => array('text', $this->getStartingTime()),
+						'ending_time_enabled' => array('integer', $this->isEndingTimeEnabled()),
 						'ending_time' => array('text', $this->getEndingTime()),
 						'complete' => array('text', $this->isComplete($testQuestionSetConfig)),
 						'ects_output' => array('text', $this->getECTSOutput()),
@@ -1413,12 +1447,14 @@ class ilObjTest extends ilObject implements ilMarkSchemaAware, ilEctsGradesEnabl
 						'shuffle_questions' => array('text', $this->getShuffleQuestions()),
 						'results_presentation' => array('integer', $this->getResultsPresentation()),
 						'show_summary' => array('integer', $this->getListOfQuestionsSettings()),
+						'password_enabled' => array('integer', (int)$this->isPasswordEnabled()),
 						'password' => array('text', $this->getPassword()),
+						'limit_users_enabled' => array('integer', (int)$this->isLimitUsersEnabled()),
 						'allowedusers' => array('integer', $this->getAllowedUsers()),
+						'alloweduserstimegap' => array('integer', $this->getAllowedUsersTimeGap()),
 						'mailnottype' => array('integer', $this->getMailNotificationType()),
 						'exportsettings' => array('integer', $this->getExportSettings()),
 						'print_bs_with_res' => array('integer', (int)$this->isBestSolutionPrintedWithResult()),
-						'alloweduserstimegap' => array('integer', $this->getAllowedUsersTimeGap()),
 						'certificate_visibility' => array('text', $this->getCertificateVisibility()),
 						'mailnotification' => array('integer', $this->getMailNotification()),
 						'tstamp' => array('integer', time()),
@@ -1857,9 +1893,10 @@ class ilObjTest extends ilObject implements ilMarkSchemaAware, ilEctsGradesEnabl
 			}
 			$this->setAuthor($data->author);
 			include_once("./Services/RTE/classes/class.ilRTE.php");
+			$this->setIntroductionEnabled($data->intro_enabled);
 			$this->setIntroduction(ilRTE::_replaceMediaObjectImageSrc($data->introduction, 1));
-			$this->setFinalStatement(ilRTE::_replaceMediaObjectImageSrc($data->finalstatement, 1));
 			$this->setShowInfo($data->showinfo);
+			$this->setFinalStatement(ilRTE::_replaceMediaObjectImageSrc($data->finalstatement, 1));
 			$this->setForceJS($data->forcejs);
 			$this->setCustomStyle($data->customstyle);
 			$this->setShowFinalStatement($data->showfinalstatement);
@@ -1884,9 +1921,11 @@ class ilObjTest extends ilObject implements ilMarkSchemaAware, ilEctsGradesEnabl
 			$this->setReportingDate($data->reporting_date);
 			$this->setShuffleQuestions($data->shuffle_questions);
 			$this->setResultsPresentation($data->results_presentation);
+			$this->setStartingTimeEnabled($data->starting_time_enabled);
 			$this->setStartingTime($data->starting_time);
+			$this->setEndingTimeEnabled($data->ending_time_enabled);
 			$this->setEndingTime($data->ending_time);
-			$this->setListOfQuestionsSettings($data->show_summary);			
+			$this->setListOfQuestionsSettings($data->show_summary);
 			$this->setECTSOutput($data->ects_output);
 			$this->setECTSGrades(
 				array(
@@ -1906,7 +1945,9 @@ class ilObjTest extends ilObject implements ilMarkSchemaAware, ilEctsGradesEnabl
 			$this->setMailNotificationType($data->mailnottype);
 			$this->setExportSettings($data->exportsettings);
 			$this->setScoreCutting($data->score_cutting);
+			$this->setPasswordEnabled($data->password_enabled);
 			$this->setPassword($data->password);
+			$this->setLimitUsersEnabled($data->limit_users_enabled);
 			$this->setAllowedUsers($data->allowedusers);
 			$this->setAllowedUsersTimeGap($data->alloweduserstimegap);
 			$this->setPassScoring($data->pass_scoring);
@@ -2023,17 +2064,45 @@ function loadQuestions($active_id = "", $pass = NULL)
 	}
 }
 
-/**
-* Sets the introduction text of the ilObjTest object
-*
-* @param string $introduction An introduction string for the test
-* @access public
-* @see $introduction
-*/
-	function setIntroduction($introduction = "")
+	/**
+	 * @return boolean
+	 */
+	public function isIntroductionEnabled()
+	{
+		return $this->introductionEnabled;
+	}
+
+	/**
+	 * @param boolean $introductionEnabled
+	 */
+	public function setIntroductionEnabled($introductionEnabled)
+	{
+		$this->introductionEnabled = $introductionEnabled;
+	}
+
+	/**
+	 * Gets the introduction text of the ilObjTest object
+	 *
+	 * @return mixed The introduction text of the test, NULL if empty
+	 * @see $introduction
+	 */
+	public function getIntroduction()
+	{
+		return (strlen($this->introduction)) ? $this->introduction : NULL;
+	}
+
+	/**
+	 * Sets the introduction text of the ilObjTest object
+	 *
+	 * @param string $introduction An introduction string for the test
+	 * @access public
+	 * @see $introduction
+	 */
+	public function setIntroduction($introduction = "")
 	{
 		$this->introduction = $introduction;
 	}
+
 
 	/**
 	* Sets the final statement text of the ilObjTest object
@@ -2168,17 +2237,6 @@ function loadQuestions($active_id = "", $pass = NULL)
 		$this->_showfinalstatement = ($show) ? 1 : 0;
 	}
 
-/**
-* Gets the introduction text of the ilObjTest object
-*
-* @return mixed The introduction text of the test, NULL if empty
-* @see $introduction
-*/
-	public function getIntroduction()
-	{
-		return (strlen($this->introduction)) ? $this->introduction : NULL;
-	}
-
 	/**
 	* Gets the final statement
 	*
@@ -2286,19 +2344,43 @@ function loadQuestions($active_id = "", $pass = NULL)
 		$this->ects_grades = $a_ects_grades;
 	}
 
-/**
-* Sets the sequence settings of the ilObjTest object
-*
-* @param integer $sequence_settings The sequence settings
-* @access public
-* @see $sequence_settings
-*/
-	function setSequenceSettings($sequence_settings = 0)
+	/**
+	 * SEQUENCE SETTING = POSTPONING ENABLED !!
+	 *
+	 * @return integer The POSTPONING ENABLED status
+	 */
+	public function getSequenceSettings()
+	{
+		return ($this->sequence_settings) ? $this->sequence_settings : 0;
+	}
+
+	/**
+	 * SEQUENCE SETTING = POSTPONING ENABLED !!
+	 *
+	 * @param integer $sequence_settings The POSTPONING ENABLED status
+	 */
+	public function setSequenceSettings($sequence_settings = 0)
 	{
 		$this->sequence_settings = $sequence_settings;
 	}
 
-/**
+	/**
+	 * @return bool $postponingEnabled
+	 */
+	public function isPostponingEnabled()
+	{
+		return (bool)$this->getSequenceSettings();
+	}
+
+	/**
+	 * @param bool $postponingEnabled
+	 */
+	public function setPostponingEnabled($postponingEnabled)
+	{
+		$this->setSequenceSettings((int)$postponingEnabled);
+	}
+
+	/**
 * Sets the score reporting of the ilObjTest object
 *
 * @param integer $score_reporting The score reporting
@@ -2404,19 +2486,6 @@ function setGenericAnswerFeedback($generic_answer_feedback = 0)
 		{
 			$this->reporting_date = $reporting_date;
 		}
-	}
-
-/**
-* Gets the sequence settings of the ilObjTest object
- * SEQUENCE SETTING = POSTPONING ENABLED !!
-*
-* @return integer The sequence settings of the test
-* @access public
-* @see $sequence_settings
-*/
-	function getSequenceSettings()
-	{
-		return ($this->sequence_settings) ? $this->sequence_settings : 0;
 	}
 
 /**
@@ -2542,18 +2611,6 @@ function getAnswerFeedbackPoints()
 	function getScoreCutting()
 	{
 		return ($this->score_cutting) ? $this->score_cutting : 0;
-	}
-
-/**
-* Returns the password for test access
-*
-* @return striong  Password for test access
-* @access public
-* @see $password
-*/
-	function getPassword()
-	{
-		return (strlen($this->password)) ? $this->password : NULL;
 	}
 
 /**
@@ -3011,28 +3068,84 @@ function getAnswerFeedbackPoints()
 		return ($this->reset_processing_time) ? $this->reset_processing_time : 0;
 	}
 
-/**
-* Returns the starting time of the test
-*
-* @return string The starting time of the test
-* @access public
-* @see $starting_time
-*/
-	function getStartingTime()
+	/**
+	 * @return boolean
+	 */
+	public function isStartingTimeEnabled()
+	{
+		return $this->starting_time_enabled;
+	}
+
+	/**
+	 * @param boolean $starting_time_enabled
+	 */
+	public function setStartingTimeEnabled($starting_time_enabled)
+	{
+		$this->starting_time_enabled = $starting_time_enabled;
+	}
+
+	/**
+	 * Returns the starting time of the test
+	 *
+	 * @return string The starting time of the test
+	 * @access public
+	 * @see $starting_time
+	 */
+	public function getStartingTime()
 	{
 		return (strlen($this->starting_time)) ? $this->starting_time : NULL;
 	}
 
-/**
-* Returns the ending time of the test
-*
-* @return string The ending time of the test
-* @access public
-* @see $ending_time
-*/
-	function getEndingTime()
+	/**
+	 * Sets the starting time in database timestamp format for the test
+	 *
+	 * @param string $starting_time The starting time for the test. Empty string for no starting time.
+	 * @access public
+	 * @see $starting_time
+	 */
+	public function setStartingTime($starting_time = NULL)
+	{
+		$this->starting_time = $starting_time;
+	}
+
+	/**
+	 * @return boolean
+	 */
+	public function isEndingTimeEnabled()
+	{
+		return $this->ending_time_enabled;
+	}
+
+	/**
+	 * @param boolean $ending_time_enabled
+	 */
+	public function setEndingTimeEnabled($ending_time_enabled)
+	{
+		$this->ending_time_enabled = $ending_time_enabled;
+	}
+
+	/**
+	 * Returns the ending time of the test
+	 *
+	 * @return string The ending time of the test
+	 * @access public
+	 * @see $ending_time
+	 */
+	public function getEndingTime()
 	{
 		return (strlen($this->ending_time)) ? $this->ending_time : NULL;
+	}
+
+	/**
+	 * Sets the ending time in database timestamp format for the test
+	 *
+	 * @param string $ending_time The ending time for the test. Empty string for no ending time.
+	 * @access public
+	 * @see $ending_time
+	 */
+	public function setEndingTime($ending_time = NULL)
+	{
+		$this->ending_time = $ending_time;
 	}
 
 /**
@@ -3159,30 +3272,6 @@ function getAnswerFeedbackPoints()
 	}
 
 /**
-* Sets the starting time in database timestamp format for the test
-*
-* @param string $starting_time The starting time for the test. Empty string for no starting time.
-* @access public
-* @see $starting_time
-*/
-	function setStartingTime($starting_time = NULL)
-	{
-		$this->starting_time = $starting_time;
-	}
-
-/**
-* Sets the ending time in database timestamp format for the test
-*
-* @param string $ending_time The ending time for the test. Empty string for no ending time.
-* @access public
-* @see $ending_time
-*/
-	function setEndingTime($ending_time = NULL)
-	{
-		$this->ending_time = $ending_time;
-	}
-
-/**
 * Sets the count system for the calculation of points
 *
 * @param integer $a_count_system The count system for the calculation of points.
@@ -3194,14 +3283,42 @@ function getAnswerFeedbackPoints()
 		$this->count_system = $a_count_system;
 	}
 
-/**
-* Sets the password for test access
-*
-* @param string $a_password The password for test access
-* @access public
-* @see $password
-*/
-	function setPassword($a_password = NULL)
+	/**
+	 * @return boolean
+	 */
+	public function isPasswordEnabled()
+	{
+		return $this->passwordEnabled;
+	}
+
+	/**
+	 * @param boolean $passwordEnabled
+	 */
+	public function setPasswordEnabled($passwordEnabled)
+	{
+		$this->passwordEnabled = $passwordEnabled;
+	}
+
+	/**
+	 * Returns the password for test access
+	 *
+	 * @return striong  Password for test access
+	 * @access public
+	 * @see $password
+	 */
+	public function getPassword()
+	{
+		return (strlen($this->password)) ? $this->password : NULL;
+	}
+
+	/**
+	 * Sets the password for test access
+	 *
+	 * @param string $a_password The password for test access
+	 * @access public
+	 * @see $password
+	 */
+	public function setPassword($a_password = NULL)
 	{
 		$this->password = $a_password;
 	}
@@ -4062,7 +4179,7 @@ function getAnswerFeedbackPoints()
 	* @return array An array containing the test results for the given user
 	* @access public
 	*/
-	function &getTestResult($active_id, $pass = NULL, $ordered_sequence = FALSE, $considerHiddenQuestions = true)
+	function &getTestResult($active_id, $pass = NULL, $ordered_sequence = FALSE, $considerHiddenQuestions = true, $considerOptionalQuestions = true)
 	{
 		global $tree, $ilDB, $lng, $ilPluginAdmin;
 
@@ -4079,7 +4196,7 @@ function getAnswerFeedbackPoints()
 		
 		require_once 'Modules/Test/classes/class.ilTestSequenceFactory.php';
 		$testSequenceFactory = new ilTestSequenceFactory($ilDB, $lng, $ilPluginAdmin, $this);
-		$testSequence = $testSequenceFactory->getSequenceByPass($testSession, $pass);
+		$testSequence = $testSequenceFactory->getSequenceByActiveIdAndPass($active_id, $pass);
 		
 		if( $this->isDynamicTest() )
 		{
@@ -4095,6 +4212,7 @@ function getAnswerFeedbackPoints()
 		else
 		{
 			$testSequence->setConsiderHiddenQuestionsEnabled($considerHiddenQuestions);
+			$testSequence->setConsiderOptionalQuestionsEnabled($considerOptionalQuestions);
 
 			$testSequence->loadFromDb();
 			$testSequence->loadQuestions();
@@ -4616,8 +4734,8 @@ function getAnswerFeedbackPoints()
 		$persons_array = array();
 		while ($row = $ilDB->fetchAssoc($result))
 		{
-			$name = $this->lng->txt("unknown");
-			$fullname = $this->lng->txt("unknown");
+			$name = $this->lng->txt("anonymous");
+			$fullname = $this->lng->txt("anonymous");
 			$login = "";
 			if (!$this->getAnonymity())
 			{
@@ -4632,8 +4750,8 @@ function getAnswerFeedbackPoints()
 					$login = $row["login"];
 					if ($row["user_fi"] == ANONYMOUS_USER_ID)
 					{
-						$name = $this->lng->txt("unknown");
-						$fullname = $this->lng->txt("unknown");
+						$name = $this->lng->txt("anonymous");
+						$fullname = $this->lng->txt("anonymous");
 					}
 					else
 					{
@@ -4669,7 +4787,7 @@ function getAnswerFeedbackPoints()
 		{
 			if ($this->getAnonymity())
 			{
-				$persons_array[$row["active_id"]] = $this->lng->txt("unknown");
+				$persons_array[$row["active_id"]] = $this->lng->txt("anonymous");
 			}
 			else
 			{
@@ -4711,7 +4829,7 @@ function getAnswerFeedbackPoints()
 		{
 			if ($this->getAnonymity())
 			{
-				$persons_array[$row["active_id"]] = array("name" => $this->lng->txt("unknown"));
+				$persons_array[$row["active_id"]] = array("name" => $this->lng->txt("anonymous"));
 			}
 			else
 			{
@@ -5701,11 +5819,14 @@ function getAnswerFeedbackPoints()
 		$this->setDescription($assessment->getComment());
 		$this->setTitle($assessment->getTitle());
 
+		$this->setIntroductionEnabled(false);
 		foreach ($assessment->objectives as $objectives)
 		{
 			foreach ($objectives->materials as $material)
 			{
-				$this->setIntroduction($this->QTIMaterialToString($material));
+				$intro = $this->QTIMaterialToString($material);
+				$this->setIntroduction($intro);
+				$this->setIntroductionEnabled(strlen($intro) > 0);
 			}
 		}
 
@@ -5730,6 +5851,11 @@ function getAnswerFeedbackPoints()
 					break;
 			}
 		}
+
+		$this->setStartingTimeEnabled(false);
+		$this->setEndingTimeEnabled(false);
+		$this->setPasswordEnabled(false);
+		$this->setLimitUsersEnabled(false);
 
 		foreach ($assessment->qtimetadata as $metadata)
 		{
@@ -5908,9 +6034,11 @@ function getAnswerFeedbackPoints()
 					break;
 				case "password":
 					$this->setPassword($metadata["entry"]);
+					$this->setPasswordEnabled(strlen($metadata["entry"]) > 0);
 					break;
 				case "allowedUsers":
 					$this->setAllowedUsers($metadata["entry"]);
+					$this->setLimitUsersEnabled(strlen($metadata["entry"]) > 0);
 					break;
 				case "allowedUsersTimeGap":
 					$this->setAllowedUsersTimeGap($metadata["entry"]);
@@ -5936,6 +6064,7 @@ function getAnswerFeedbackPoints()
 					if (preg_match("/P(\d+)Y(\d+)M(\d+)DT(\d+)H(\d+)M(\d+)S/", $iso8601period, $matches))
 					{
 						$this->setStartingTime(sprintf("%02d%02d%02d%02d%02d%02d", $matches[1], $matches[2], $matches[3], $matches[4], $matches[5], $matches[6]));
+						$this->setStartingTimeEnabled(true);
 					}
 					break;
 				case "ending_time":
@@ -5943,6 +6072,7 @@ function getAnswerFeedbackPoints()
 					if (preg_match("/P(\d+)Y(\d+)M(\d+)DT(\d+)H(\d+)M(\d+)S/", $iso8601period, $matches))
 					{
 						$this->setEndingTime(sprintf("%02d%02d%02d%02d%02d%02d", $matches[1], $matches[2], $matches[3], $matches[4], $matches[5], $matches[6]));
+						$this->setEndingTimeEnabled(true);
 					}
 					break;
 				case "enable_examview":
@@ -7000,14 +7130,19 @@ function getAnswerFeedbackPoints()
 		$newObj->setAnswerFeedback($this->getAnswerFeedback());
 		$newObj->setAnswerFeedbackPoints($this->getAnswerFeedbackPoints());
 		$newObj->setAuthor($this->getAuthor());
+		$newObj->setLimitUsersEnabled($this->isLimitUsersEnabled());
+		$newObj->setAllowedUsers($this->getAllowedUsers());
+		$newObj->setAllowedUsersTimeGap($this->getAllowedUsersTimeGap());
 		$newObj->setCountSystem($this->getCountSystem());
 		$newObj->setECTSFX($this->getECTSFX());
 		$newObj->setECTSGrades($this->getECTSGrades());
 		$newObj->setECTSOutput($this->getECTSOutput());
 		$newObj->setEnableProcessingTime($this->getEnableProcessingTime());
+		$newObj->setEndingTimeEnabled($this->isEndingTimeEnabled());
 		$newObj->setEndingTime($this->getEndingTime());
 		$newObj->setFixedParticipants($this->getFixedParticipants());
 		$newObj->setInstantFeedbackSolution($this->getInstantFeedbackSolution());
+		$newObj->setIntroductionEnabled($this->isIntroductionEnabled());
 		$newObj->setIntroduction($this->getIntroduction());
 		$newObj->setFinalStatement($this->getFinalStatement());
 		$newObj->setShowInfo($this->getShowInfo());
@@ -7021,6 +7156,7 @@ function getAnswerFeedbackPoints()
 		$newObj->setMailNotificationType($this->getMailNotificationType());
 		$newObj->setNrOfTries($this->getNrOfTries());
 		$newObj->setPassScoring($this->getPassScoring());
+		$newObj->setPasswordEnabled($this->isPasswordEnabled());
 		$newObj->setPassword($this->getPassword());
 		$newObj->setProcessingTime($this->getProcessingTime());
 		$newObj->setQuestionSetType($this->getQuestionSetType());
@@ -7033,6 +7169,7 @@ function getAnswerFeedbackPoints()
 		$newObj->setShowCancel($this->getShowCancel());
 		$newObj->setShowMarker($this->getShowMarker());
 		$newObj->setShuffleQuestions($this->getShuffleQuestions());
+		$newObj->setStartingTimeEnabled($this->isStartingTimeEnabled());
 		$newObj->setStartingTime($this->getStartingTime());
 		$newObj->setTitleOutput($this->getTitleOutput());
 		$newObj->setUsePreviousAnswers($this->getUsePreviousAnswers());
@@ -7069,6 +7206,12 @@ function getAnswerFeedbackPoints()
 		$testQuestionSetConfigFactory = new ilTestQuestionSetConfigFactory($tree, $ilDB, $ilPluginAdmin, $this);
 		$testQuestionSetConfigFactory->getQuestionSetConfig()->cloneQuestionSetRelatedData($newObj);
 
+		require_once 'Modules/Test/classes/class.ilTestSkillLevelThresholdList.php';
+		$skillLevelThresholdList = new ilTestSkillLevelThresholdList($ilDB);
+		$skillLevelThresholdList->setTestId($this->getTestId());
+		$skillLevelThresholdList->loadFromDb();
+		$skillLevelThresholdList->cloneListForTest($newObj->getTestId());
+		
 		$newObj->saveToDb();
 		$newObj->updateMetaData();// #14467
 		return $newObj;
@@ -7293,7 +7436,7 @@ function getAnswerFeedbackPoints()
 					"WHERE tst_invited_user.test_fi = %s and tst_invited_user.user_fi=usr_data.usr_id AND usr_data.usr_id=%s " .
 					"ORDER BY $order",
 					array('text', 'text', 'text', 'integer', 'integer'),
-					array("", $this->lng->txt("unknown"), "", $this->getTestId(), $user_id)
+					array("", $this->lng->txt("anonymous"), "", $this->getTestId(), $user_id)
 				);
 			}
 			else
@@ -7304,7 +7447,7 @@ function getAnswerFeedbackPoints()
 					"WHERE tst_invited_user.test_fi = %s and tst_invited_user.user_fi=usr_data.usr_id " .
 					"ORDER BY $order",
 					array('text', 'text', 'text', 'integer'),
-					array("", $this->lng->txt("unknown"), "", $this->getTestId())
+					array("", $this->lng->txt("anonymous"), "", $this->getTestId())
 				);
 			}
 		}
@@ -7356,7 +7499,7 @@ function getAnswerFeedbackPoints()
 			$result = $ilDB->queryF("SELECT tst_active.active_id, tst_active.tries, tst_active.user_fi usr_id, %s login, %s lastname, %s firstname, tst_active.submitted test_finished, usr_data.matriculation, usr_data.active ".
 				"FROM tst_active LEFT JOIN usr_data ON tst_active.user_fi = usr_data.usr_id WHERE tst_active.test_fi = %s ORDER BY usr_data.lastname " . strtoupper($name_sort_order),
 				array('text', 'text', 'text', 'integer'),
-				array("", $this->lng->txt("unknown"), "", $this->getTestId())
+				array("", $this->lng->txt("anonymous"), "", $this->getTestId())
 			);
 		}
 		else
@@ -7494,7 +7637,7 @@ function getAnswerFeedbackPoints()
 		{
 			$result = $ilDB->queryF("SELECT usr_id, %s login, %s lastname, %s firstname, client_ip clientip FROM usr_data WHERE " . $ilDB->in('usr_id', $ids, false, 'integer') . " ORDER BY login",
 				array('text', 'text', 'text'),
-				array("", $this->lng->txt("unknown"), "")
+				array("", $this->lng->txt("anonymous"), "")
 			);
 		}
 		else
@@ -7710,6 +7853,7 @@ function getAnswerFeedbackPoints()
 
 	/**
 	 * returns if number of tries are reached
+	 * @deprecated: tries field differs per situation, outside a pass it's the number of tries, inside a pass it's the current pass number.
 	 */
 
 	function isNrOfTriesReached($tries)
@@ -7781,7 +7925,7 @@ function getAnswerFeedbackPoints()
 				if ($this->getAnonymity())
 				{
 					$user_rec['firstname'] = "";
-					$user_rec['lastname'] = $this->lng->txt("unknown");
+					$user_rec['lastname'] = $this->lng->txt("anonymous");
 				}
 				$row = array(
 					"user_id"=>$user_rec['usr_id'],
@@ -7995,7 +8139,7 @@ function getAnswerFeedbackPoints()
 
 			require_once 'Modules/Test/classes/class.ilTestSequenceFactory.php';
 			$testSequenceFactory = new ilTestSequenceFactory($ilDB, $lng, $ilPluginAdmin, $this);
-			$testSequence = $testSequenceFactory->getSequence($testSession);
+			$testSequence = $testSequenceFactory->getSequenceByTestSession($testSession);
 
 			require_once 'Modules/Test/classes/class.ilObjTestDynamicQuestionSetConfig.php';
 			$dynamicQuestionSetConfig = new ilObjTestDynamicQuestionSetConfig($tree, $ilDB, $ilPluginAdmin, $this);
@@ -8111,11 +8255,21 @@ function getAnswerFeedbackPoints()
 			}
 		}
 
-		if ($this->hasNrOfTriesRestriction() && ($active_id > 0) && $this->isNrOfTriesReached($testSession->getPass()))
+		if ($this->hasNrOfTriesRestriction() && ($active_id > 0))
 		{
-			$result["executable"] = false;
-			$result["errormessage"] = $this->lng->txt("maximum_nr_of_tries_reached");
-			return $result;
+			require_once 'Modules/Test/classes/class.ilTestPassesSelector.php';
+			$testPassesSelector = new ilTestPassesSelector($GLOBALS['ilDB'], $this);
+			$testPassesSelector->setActiveId($active_id);
+			$testPassesSelector->setLastFinishedPass($testSession->getLastFinishedPass());
+
+			$closedPasses = $testPassesSelector->getReportablePasses();
+
+			if( count($closedPasses) >= $this->getNrOfTries() )
+			{
+				$result["executable"] = false;
+				$result["errormessage"] = $this->lng->txt("maximum_nr_of_tries_reached");
+				return $result;
+			}
 		}
 
 		return $result;
@@ -8178,12 +8332,15 @@ function getAnswerFeedbackPoints()
 * @return mixed The unix timestamp if the user started the test, FALSE otherwise
 * @access public
 */
-	function getStartingTimeOfUser($active_id)
+	function getStartingTimeOfUser($active_id, $pass = null)
 	{
 		global $ilDB;
 
 		if ($active_id < 1) return FALSE;
+		if($pass === null)
+		{
 		$pass = ($this->getResetProcessingTime()) ? $this->_getPass($active_id) : 0;
+		}
 		$result = $ilDB->queryF("SELECT tst_times.started FROM tst_times WHERE tst_times.active_fi = %s AND tst_times.pass = %s ORDER BY tst_times.started",
 			array('integer', 'integer'),
 			array($active_id, $pass)
@@ -8967,22 +9124,38 @@ function getAnswerFeedbackPoints()
 		unset($_SESSION["tst_access_code"]["$id"]);
 	}
 
-	function getAllowedUsers()
+	/**
+	 * @return boolean
+	 */
+	public function isLimitUsersEnabled()
+	{
+		return $this->limitUsersEnabled;
+	}
+
+	/**
+	 * @param boolean $limitUsersEnabled
+	 */
+	public function setLimitUsersEnabled($limitUsersEnabled)
+	{
+		$this->limitUsersEnabled = $limitUsersEnabled;
+	}
+
+	public function getAllowedUsers()
 	{
 		return ($this->allowedUsers) ? $this->allowedUsers : 0;
 	}
 
-	function setAllowedUsers($a_allowed_users)
+	public function setAllowedUsers($a_allowed_users)
 	{
 		$this->allowedUsers = $a_allowed_users;
 	}
 
-	function getAllowedUsersTimeGap()
+	public function getAllowedUsersTimeGap()
 	{
 		return ($this->allowedUsersTimeGap) ? $this->allowedUsersTimeGap : 0;
 	}
 
-	function setAllowedUsersTimeGap($a_allowed_users_time_gap)
+	public function setAllowedUsersTimeGap($a_allowed_users_time_gap)
 	{
 		$this->allowedUsersTimeGap = $a_allowed_users_time_gap;
 	}
@@ -8998,10 +9171,18 @@ function getAnswerFeedbackPoints()
 			$now = mktime();
 			$time_border = $now - $time_gap;
 			$str_time_border = strftime("%Y%m%d%H%M%S", $time_border);
-			$result = $ilDB->queryF("SELECT DISTINCT tst_times.active_fi FROM tst_times, tst_active WHERE tst_times.tstamp > %s AND tst_times.active_fi = tst_active.active_id AND tst_active.test_fi = %s",
-				array('integer', 'integer'),
-				array($time_border, $this->getTestId())
-			);
+			$query = "
+				SELECT DISTINCT tst_times.active_fi
+				FROM tst_times
+				INNER JOIN tst_active
+				ON tst_times.active_fi = tst_active.active_id
+				AND (
+					tst_times.pass > tst_active.last_finished_pass OR tst_active.last_finished_pass IS NULL
+				)
+				WHERE tst_times.tstamp > %s
+				AND tst_active.test_fi = %s
+			";
+			$result = $ilDB->queryF($query, array('integer', 'integer'), array($time_border, $this->getTestId()));
 			if ($result->numRows() >= $nr_of_users)
 			{
 				include_once "./Modules/Test/classes/class.ilObjAssessmentFolder.php";
@@ -9524,6 +9705,7 @@ function getAnswerFeedbackPoints()
 		$testsettings = array(
 			"TitleOutput" => $this->getTitleOutput(),
 			"PassScoring" => $this->getPassScoring(),
+			"IntroEnabled" => $this->isIntroductionEnabled(),
 			"Introduction" => $this->getIntroduction(),
 			"FinalStatement" => $this->getFinalStatement(),
 			"ShowInfo" => $this->getShowInfo(),
@@ -9547,7 +9729,9 @@ function getAnswerFeedbackPoints()
 			"ProcessingTime" => $this->getProcessingTime(),
 			"EnableProcessingTime" => $this->getEnableProcessingTime(),
 			"ResetProcessingTime" => $this->getResetProcessingTime(),
+			"StartingTimeEnabled" => $this->isStartingTimeEnabled(),
 			"StartingTime" => $this->getStartingTime(),
+			"EndingTimeEnabled" => $this->isEndingTimeEnabled(),
 			"EndingTime" => $this->getEndingTime(),
 			"ECTSOutput" => $this->getECTSOutput(),
 			"ECTSFX" => $this->getECTSFX(),
@@ -9601,6 +9785,7 @@ function getAnswerFeedbackPoints()
 
 		$this->setTitleOutput($testsettings["TitleOutput"]);
 		$this->setPassScoring($testsettings["PassScoring"]);
+		$this->setIntroductionEnabled($testsettings["IntroEnabled"]);
 		$this->setIntroduction($testsettings["Introduction"]);
 		$this->setFinalStatement($testsettings["FinalStatement"]);
 		$this->setShowInfo($testsettings["ShowInfo"]);
@@ -9625,8 +9810,10 @@ function getAnswerFeedbackPoints()
 		$this->setProcessingTime($testsettings["ProcessingTime"]);
 		$this->setResetProcessingTime($testsettings["ResetProcessingTime"]);
 		$this->setEnableProcessingTime($testsettings["EnableProcessingTime"]);
+		$this->setStartingTimeEnabled($testsettings["StartingTimeEnabled"]);
 		$this->setStartingTime($testsettings["StartingTime"]);
 		$this->setKiosk($testsettings["Kiosk"]);
+		$this->setEndingTimeEnabled($testsettings["EndingTimeEnabled"]);
 		$this->setEndingTime($testsettings["EndingTime"]);
 		$this->setECTSOutput($testsettings["ECTSOutput"]);
 		$this->setECTSFX($testsettings["ECTSFX"]);
@@ -9979,7 +10166,7 @@ function getAnswerFeedbackPoints()
 						if ($this->getAnonymity())
 						{
 							$user_rec['firstname'] = "";
-							$user_rec['lastname'] = $this->lng->txt("unknown");
+							$user_rec['lastname'] = $this->lng->txt("anonymous");
 						}
 						$row = array(
 							"user_id"=>$user_rec['usr_id'],
@@ -10255,29 +10442,12 @@ function getAnswerFeedbackPoints()
 	
 	public function sendSimpleNotification($active_id)
 	{
-		include_once "./Services/Mail/classes/class.ilMail.php";
-		$mail = new ilMail(ANONYMOUS_USER_ID);
-
-		$usr_data = $this->userLookupFullName(ilObjTest::_getUserIdFromActiveId($active_id));
-		$message = new ilTemplate("tpl.il_as_tst_finish_notification_simple.html", TRUE, TRUE, "Modules/Test");
-		$message->setVariable('TEXT_TEST_TITLE', $this->lng->txt('title'));
-		$message->setVariable('VALUE_TEST_TITLE', $this->getTitle());
-		$message->setVariable('TEXT_USER_NAME', $this->lng->txt('username'));
-		$message->setVariable('VALUE_USER_NAME', $usr_data);
-		$message->setVariable('TEXT_FINISH_TIME', $this->lng->txt('tst_finished'));
-		ilDatePresentation::setUseRelativeDates(false);
-		$message->setVariable('VALUE_FINISH_TIME', ilDatePresentation::formatDate(new ilDateTime(time(), IL_CAL_UNIX)));
+		include_once "./Modules/Test/classes/class.ilTestMailNotification.php";
 		
-		$res = $mail->sendMail(
-			ilObjUser::_lookupLogin($this->getOwner()), // to
-			"", // cc
-			"", // bcc
-			sprintf($this->lng->txt('tst_user_finished_test'), $this->getTitle()), // subject
-			$message->get(), // message
-			array(), // attachments
-			array('normal') // type
-		);	
-		global $ilLog; $ilLog->write("sending mail: " . $res);
+		$mail = new ilTestMailNotification();
+		$owner_id = $this->getOwner();
+		$usr_data = $this->userLookupFullName(ilObjTest::_getUserIdFromActiveId($active_id));
+		$mail->sendSimpleNotification($owner_id, $this->getTitle(), $usr_data);
 	}
 	
 	/**
@@ -10295,18 +10465,11 @@ function getAnswerFeedbackPoints()
 
 	public function sendAdvancedNotification($active_id)
 	{
-		include_once "./Services/Mail/classes/class.ilMail.php";
-		$mail = new ilMail(ANONYMOUS_USER_ID);
+		include_once "./Modules/Test/classes/class.ilTestMailNotification.php";
 
+		$mail = new ilTestMailNotification();
+		$owner_id = $this->getOwner();
 		$usr_data = $this->userLookupFullName(ilObjTest::_getUserIdFromActiveId($active_id));
-		$message = new ilTemplate("tpl.il_as_tst_finish_notification_simple.html", TRUE, TRUE, "Modules/Test");
-		$message->setVariable('TEXT_TEST_TITLE', $this->lng->txt('title'));
-		$message->setVariable('VALUE_TEST_TITLE', $this->getTitle());
-		$message->setVariable('TEXT_USER_NAME', $this->lng->txt('username'));
-		$message->setVariable('VALUE_USER_NAME', $usr_data);
-		$message->setVariable('TEXT_FINISH_TIME', $this->lng->txt('tst_finished'));
-		ilDatePresentation::setUseRelativeDates(false);
-		$message->setVariable('VALUE_FINISH_TIME', ilDatePresentation::formatDate(new ilDateTime(time(), IL_CAL_UNIX)));
 
 		include_once "./Modules/Test/classes/class.ilTestExport.php";
 		$exportObj = new ilTestExport($this, "results");
@@ -10315,15 +10478,9 @@ function getAnswerFeedbackPoints()
 		$fd = new ilFileDataMail(ANONYMOUS_USER_ID);
 		$fd->copyAttachmentFile($file, "result_" . $active_id . ".xls");
 		$file_names[] = "result_" . $active_id . ".xls";
-		$result = $mail->sendMail(
-			ilObjUser::_lookupLogin($this->getOwner()), // to
-			"", // cc
-			"", // bcc
-			sprintf($this->lng->txt('tst_user_finished_test'), $this->getTitle()), // subject
-			$message->get(), // message
-			count($file_names) ? $file_names : array(), // attachments
-			array('normal') // type
-		);
+
+		$mail->sendAdvancedNotification($owner_id, $this->getTitle(), $usr_data, $file_names);
+	
 		if(count($file_names))
 		{
 			$fd->unlinkFiles($file_names);
@@ -11725,6 +11882,13 @@ function getAnswerFeedbackPoints()
 		$scoring = new ilTestScoring($this);
 		$scoring->setPreserveManualScores($preserve_manscoring);
 		$scoring->recalculateSolutions();
+
+		if ($this->getEnableArchiving())
+		{
+			require_once 'Modules/Test/classes/class.ilTestArchiveService.php';
+			$archiveService = new ilTestArchiveService($this);
+			$archiveService->archivePassesByActives($scoring->getRecalculatedPassesByActives());
+		}
 	}
 	
 	public static function getPoolQuestionChangeListeners(ilDB $db, $poolObjId)
@@ -11860,7 +12024,7 @@ function getAnswerFeedbackPoints()
 		$testSequenceFactory = new ilTestSequenceFactory($ilDB, $lng, $ilPluginAdmin, $testOBJ);
 
 		$testSession = $testSessionFactory->getSession($activeId);
-		$testSequence = $testSequenceFactory->getSequenceByPass($testSession, $testSession->getPass());
+		$testSequence = $testSequenceFactory->getSequenceByActiveIdAndPass($activeId, $testSession->getPass());
 		$testSequence->loadFromDb();
 
 		// begin-patch lok changed smeyer
@@ -11896,7 +12060,7 @@ function getAnswerFeedbackPoints()
 		$testSequenceFactory = new ilTestSequenceFactory($ilDB, $lng, $ilPluginAdmin, $testOBJ);
 		
 		$testSession = $testSessionFactory->getSession($activeId);
-		$testSequence = $testSequenceFactory->getSequenceByPass($testSession, $testSession->getPass());
+		$testSequence = $testSequenceFactory->getSequenceByActiveIdAndPass($activeId, $testSession->getPass());
 		$testSequence->loadFromDb();
 		
 		return $testSequence->hasSequence();

@@ -365,22 +365,32 @@ class ilLOUserResults
 		
 		$res = array();
 		
-		$sql = "SELECT objective_id, user_id, status, is_final".
-			" FROM loc_user_results".
-			" WHERE ".$ilDB->in("objective_id", $a_objective_ids, "", "integer");		
+		$sql =  "SELECT lor.objective_id, lor.user_id, lor.status, lor.is_final".
+			" FROM loc_user_results lor".
+			" JOIN crs_objectives cobj ON (cobj.objective_id = lor.objective_id)".	
+			" WHERE ".$ilDB->in("lor.objective_id", $a_objective_ids, "", "integer");		
 		if(!(bool)$initial_qualifying)
 		{
-			$sql .= " AND type = ".$ilDB->quote(self::TYPE_QUALIFIED, "integer");
+			$sql .= " AND lor.type = ".$ilDB->quote(self::TYPE_QUALIFIED, "integer");
 		}	
-		$sql .= " AND user_id = ".$ilDB->quote($a_user_id, "integer").
-			" ORDER BY type"; // qualified must come last!
+		$sql .= " AND lor.user_id = ".$ilDB->quote($a_user_id, "integer").
+			" AND cobj.active = ".$ilDB->quote(1, "integer").
+			" ORDER BY lor.type"; // qualified must come last!
 		$set = $ilDB->query($sql);
 		while($row = $ilDB->fetchAssoc($set))
 		{									
 			switch($row["status"])
 			{
-				case self::STATUS_FAILED:					
-					$status = ilLPStatus::LP_STATUS_FAILED_NUM;					
+				case self::STATUS_FAILED:	
+					if((bool)$row["is_final"])
+					{
+						$status = ilLPStatus::LP_STATUS_FAILED_NUM;					
+					}
+					else
+					{	
+						// #15379
+						$status = ilLPStatus::LP_STATUS_IN_PROGRESS_NUM;	
+					}
 					break;
 				
 				case self::STATUS_COMPLETED:
@@ -418,18 +428,20 @@ class ilLOUserResults
 				
 		$res = $tmp_completed = array();		
 		
-		$sql = "SELECT objective_id, user_id, status, is_final, type".
-			" FROM loc_user_results".
-			" WHERE ".$ilDB->in("objective_id", $a_objective_ids, "", "integer");
+		$sql = "SELECT lor.objective_id, lor.user_id, lor.status, lor.type".
+			" FROM loc_user_results lor".
+			" JOIN crs_objectives cobj ON (cobj.objective_id = lor.objective_id)".	
+			" WHERE ".$ilDB->in("lor.objective_id", $a_objective_ids, "", "integer").
+			" AND cobj.active = ".$ilDB->quote(1, "integer");	
 		if(!(bool)$initial_qualifying)
 		{
-			$sql .= " AND type = ".$ilDB->quote(self::TYPE_QUALIFIED, "integer");
+			$sql .= " AND lor.type = ".$ilDB->quote(self::TYPE_QUALIFIED, "integer");
 		}
 		if($a_user_id)
 		{
-			$sql .= " AND user_id = ".$ilDB->quote($a_user_id, "integer");
+			$sql .= " AND lor.user_id = ".$ilDB->quote($a_user_id, "integer");
 		}		
-		$sql .= " ORDER BY type DESC"; // qualified must come first!
+		$sql .= " ORDER BY lor.type DESC"; // qualified must come first!
 		$set = $ilDB->query($sql);			
 		while($row = $ilDB->fetchAssoc($set))
 		{										

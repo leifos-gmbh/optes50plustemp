@@ -8,7 +8,7 @@ include_once './Services/Tracking/classes/class.ilLearningProgressBaseGUI.php';
 *
 * @author Stefan Meyer <meyer@leifos.com>
 *
-* @version $Id: class.ilLearningProgressGUI.php 56504 2014-12-17 10:21:06Z bheyser $
+* @version $Id: class.ilLearningProgressGUI.php 57749 2015-02-03 06:36:22Z bheyser $
 *
 * @ilCtrl_Calls ilLearningProgressGUI: ilLPListOfObjectsGUI, ilLPListOfSettingsGUI, ilLPListOfProgressGUI
 * @ilCtrl_Calls ilLearningProgressGUI: ilLPObjectStatisticsGUI
@@ -159,10 +159,11 @@ class ilLearningProgressGUI extends ilLearningProgressBaseGUI
 				
 				// #12771				
 				include_once './Services/Object/classes/class.ilObjectLP.php';
-				$olp = ilObjectLP::getInstance(ilObject::_lookupObjId($this->getRefId()));			
+				$olp = ilObjectLP::getInstance(ilObject::_lookupObjId($this->getRefId()));						
 				if(!$olp->isActive())
-				{
-					if($ilAccess->checkAccess('edit_learning_progress','',$this->getRefId()))
+				{				
+					if(!($olp instanceof ilPluginLP) &&
+						$ilAccess->checkAccess('edit_learning_progress','',$this->getRefId()))
 					{
 						return 'illplistofsettingsgui';
 					}

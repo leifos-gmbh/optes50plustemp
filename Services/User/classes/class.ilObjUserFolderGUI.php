@@ -9,7 +9,7 @@ require_once "./Services/Object/classes/class.ilObjectGUI.php";
 * @author Stefan Meyer <meyer@leifos.com> 
 * @author Sascha Hofmann <saschahofmann@gmx.de>
 * @author Helmut Schottmüller <helmut.schottmueller@mac.com>
-* @version $Id: class.ilObjUserFolderGUI.php 56831 2015-01-07 11:22:27Z smeyer $
+* @version $Id: class.ilObjUserFolderGUI.php 57620 2015-01-28 14:30:43Z bheyser $
 * 
 * @ilCtrl_Calls ilObjUserFolderGUI: ilPermissionGUI, ilUserTableGUI
 * @ilCtrl_Calls ilObjUserFolderGUI: ilAccountCodesGUI, ilCustomUserFieldsGUI, ilRepositorySearchGUI
@@ -2428,13 +2428,10 @@ class ilObjUserFolderGUI extends ilObjectGUI
 		$cgui->setCancel($this->lng->txt("cancel"), "cancelDeleteExportFile");
 		$cgui->setConfirm($this->lng->txt("confirm"), "deleteExportFile");		
 
-		// BEGIN TABLE DATA
-		$counter = 0;
+		// BEGIN TABLE DATA		
 		foreach($_POST["file"] as $file)
-		{
-			$caption = ilUtil::getImageTagByType("usrf", $this->tpl->tplPath).					
-				" ".$file;						
-			$cgui->addItem("file[]", $file, $caption);
+		{							
+			$cgui->addItem("file[]", $file, $file, ilUtil::getTypeIconPath("usrf"), $this->lng->txt("obj_usrf"));
 		}
 
 		$this->tpl->setContent($cgui->getHTML());

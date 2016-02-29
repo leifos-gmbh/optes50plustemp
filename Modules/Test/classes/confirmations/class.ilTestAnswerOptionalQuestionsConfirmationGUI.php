@@ -69,10 +69,20 @@ class ilTestAnswerOptionalQuestionsConfirmationGUI extends ilConfirmationGUI
 		$this->confirmCmd = $confirmCmd;
 	}
 	
-	public function build()
+	public function build($isFixedTest)
+	{		
+		$this->setHeaderText($this->buildHeaderText($isFixedTest));
+		$this->setCancel($this->lng->txt('back'), $this->getCancelCmd());
+		$this->setConfirm($this->lng->txt('proceed'), $this->getConfirmCmd());
+	}
+	
+	private function buildHeaderText($isFixedTest)
 	{
-		$this->setHeaderText($this->lng->txt('tst_answer_optional_questions_confirmation'));
-		$this->setCancel($this->lng->txt('cancel'), $this->getCancelCmd());
-		$this->setConfirm($this->lng->txt('confirm'), $this->getConfirmCmd());
+		if($isFixedTest)
+		{
+			return $this->lng->txt('tst_optional_questions_confirmation_fixed_test');
+		}
+
+		return $this->lng->txt('tst_optional_questions_confirmation_non_fixed_test');
 	}
 } 

@@ -7,7 +7,7 @@ require_once("./Services/COPage/classes/class.ilPageContent.php");
 * User Interface for Editing of Page Content Objects (Paragraphs, Tables, ...)
 *
 * @author Alex Killing <alex.killing@gmx.de>
-* @version $Id: class.ilPageContentGUI.php 54018 2014-10-05 10:58:43Z akill $
+* @version $Id: class.ilPageContentGUI.php 57620 2015-01-28 14:30:43Z bheyser $
 *
 * @ingroup ServicesCOPage
 */
@@ -520,12 +520,12 @@ class ilPageContentGUI
 					$error_str .= htmlentities($err_mess)."<br />";
 				}
 			}
-			$this->tpl->setVariable("MESSAGE", $error_str);
+			ilUtil::sendFailure($error_str);
 		}
 		else if($this->updated != "" && $this->updated !== true)
 		{
-			$this->tpl->setVariable("MESSAGE", "<b>Error(s):</b><br />".
-				$this->updated."<br />");
+			ilUtil::sendFailure("<b>Error(s):</b><br />".
+				$this->updated);
 		}
 	}
 	

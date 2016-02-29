@@ -6,7 +6,7 @@
 * class ilcourseobjective
 *
 * @author Stefan Meyer <meyer@leifos.com> 
-* @version $Id: class.ilCourseObjective.php 56836 2015-01-07 12:11:55Z jluetzen $
+* @version $Id: class.ilCourseObjective.php 57667 2015-01-30 10:57:45Z smeyer $
 * 
 * @extends Object
 */
@@ -146,6 +146,7 @@ class ilCourseObjective
 			$new_objective = new ilCourseObjective($new_course);
 			$new_objective->setTitle($row->title);
 			$new_objective->setDescription($row->description);
+			$new_objective->setActive($row->active);
 			$objective_id = $new_objective->add();
 			$ilLog->write(__METHOD__.': Added new objective nr: '.$objective_id);
 			
@@ -153,6 +154,21 @@ class ilCourseObjective
 			include_once('Modules/Course/classes/class.ilCourseObjectiveQuestion.php');
 			$objective_qst = new ilCourseObjectiveQuestion($row->objective_id);
 			$objective_qst->cloneDependencies($objective_id,$a_copy_id);
+	
+			// Clone test assignments
+			include_once './Modules/Course/classes/Objectives/class.ilLOTestAssignments.php';
+			include_once './Modules/Course/classes/Objectives/class.ilLOSettings.php';
+			$assignments = ilLOTestAssignments::getInstance($this->course_obj->getId());
+			$assignment_it = $assignments->getAssignmentByObjective($row->objective_id, ilLOSettings::TYPE_TEST_INITIAL);
+			if($assignment_it)
+			{
+				$assignment_it->cloneSettings($a_copy_id, $new_course->getId(), $objective_id);
+			}
+			$assignment_qt = $assignments->getAssignmentByObjective($row->objective_id, ilLOSettings::TYPE_TEST_QUALIFIED);
+			if($assignment_qt)
+			{
+				$assignment_qt->cloneSettings($a_copy_id, $new_course->getId(), $objective_id);
+			}
 
 			$ilLog->write(__METHOD__.': Finished objective question dependencies: '.$objective_id);
 			

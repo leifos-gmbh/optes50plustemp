@@ -17,7 +17,7 @@ define ("IL_LIST_FULL", "full");
 * generally refuses them.
 *
 * @author Alex Killing <alex.killing@gmx.de>
-* $Id: class.ilObjectListGUI.php 56831 2015-01-07 11:22:27Z smeyer $
+* $Id: class.ilObjectListGUI.php 57620 2015-01-28 14:30:43Z bheyser $
 *
 */
 class ilObjectListGUI
@@ -2714,7 +2714,7 @@ class ilObjectListGUI
 		$this->current_selection_list->setAsynchUrl($a_asynch_url);
 		if ($a_header_actions)
 		{
-			$this->current_selection_list->setListTitle($lng->txt("actions"));
+			$this->current_selection_list->setListTitle("<span class='hidden-xs'>".$lng->txt("actions")."</span>");
 		}
 		else
 		{

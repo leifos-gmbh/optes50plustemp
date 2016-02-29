@@ -16,7 +16,7 @@ require_once './Modules/Test/classes/inc.AssessmentConstants.php';
  * @author		Björn Heyser <bheyser@databay.de>
  * @author		Maximilian Becker <mbecker@databay.de>
  *
- * @version	$Id: class.assMultipleChoiceGUI.php 56831 2015-01-07 11:22:27Z smeyer $
+ * @version	$Id: class.assMultipleChoiceGUI.php 57331 2015-01-22 10:14:28Z jluetzen $
  *          
  * @ingroup ModulesTestQuestionPool
  */
@@ -399,7 +399,7 @@ class assMultipleChoiceGUI extends assQuestionGUI implements ilGuiQuestionScorin
 		if (!$show_question_only)
 		{
 			// get page object output
-			$solutionoutput = '<div class="ilc_question_Standard">'.$solutionoutput."</div>";
+			$solutionoutput = $this->getILIASPage($solutionoutput);
 		}
 		return $solutionoutput;
 	}

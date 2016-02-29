@@ -6,7 +6,7 @@
  * shown on "general" subtab
  *
  * @author		Björn Heyser <bheyser@databay.de>
- * @version		$Id: class.ilObjQuestionPoolSettingsGeneralGUI.php 44506 2013-08-28 09:23:11Z bheyser $
+ * @version		$Id: class.ilObjQuestionPoolSettingsGeneralGUI.php 59666 2015-06-30 11:05:11Z bheyser $
  *
  * @package		Modules/TestQuestionPool
  * 
@@ -161,6 +161,12 @@ class ilObjQuestionPoolSettingsGeneralGUI
 		$navTax = $form->getItemByPostVar('nav_taxonomy');
 		$this->poolOBJ->setNavTaxonomyId($navTax->getValue());
 
+		if( $this->formPropertyExists($form, 'skill_service') )
+		{
+			$skillService = $form->getItemByPostVar('skill_service');
+			$this->poolOBJ->setSkillServiceEnabled($skillService->getChecked());
+		}
+		
 		$this->poolOBJ->saveToDb();
 	}
 	
@@ -198,6 +204,15 @@ class ilObjQuestionPoolSettingsGeneralGUI
 			$navTax->setValue($this->poolOBJ->getNavTaxonomyId());
 			$navTax->setOptions($taxSelectOptions);
 		$showTax->addSubItem($navTax);
+
+		// skill service activation
+		
+		if( ilObjQuestionPool::isSkillManagementGloballyActivated() )
+		{
+			$skillService = new ilCheckboxInputGUI($this->lng->txt('tst_activate_skill_service'), 'skill_service');
+			$skillService->setChecked($this->poolOBJ->isSkillServiceEnabled());
+			$form->addItem($skillService);
+		}
 		
 		return $form;
 	}
@@ -214,5 +229,10 @@ class ilObjQuestionPoolSettingsGeneralGUI
 		}
 		
 		return $taxSelectOptions;
+	}
+
+	protected function formPropertyExists(ilPropertyFormGUI $form, $propertyId)
+	{
+		return $form->getItemByPostVar($propertyId) instanceof ilFormPropertyGUI;
 	}
 }

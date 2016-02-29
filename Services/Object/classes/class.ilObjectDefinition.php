@@ -7,7 +7,7 @@
 * it handles the xml-description of all ilias objects
 *
 * @author Alex Killing <alex.killing@gmx.de>
-* @version $Id: class.ilObjectDefinition.php 57074 2015-01-13 13:38:45Z jluetzen $
+* @version $Id: class.ilObjectDefinition.php 57749 2015-02-03 06:36:22Z bheyser $
 *
 * @externalTableAccess ilObjDefReader on il_object_def, il_object_subobj, il_object_group 
 */
@@ -526,7 +526,14 @@ class ilObjectDefinition// extends ilSaxParser
 	 */
 	public function hasLocalRoles($a_obj_type)
 	{
-		return isset($this->obj_data[$a_obj_type]['subobjects']['rolf']);
+		switch($a_obj_type)
+		{
+			case 'root':
+				return FALSE;
+				
+			default:
+				return TRUE;
+		}
 	}
 	
 	/**
@@ -636,7 +643,7 @@ class ilObjectDefinition// extends ilSaxParser
 				{
 					continue;
 				}
-				if($subtype == 'rolf' or $subtype == 'rolt')
+				if($subtype == 'rolt')
 				{
 					continue;
 				}
@@ -1131,6 +1138,23 @@ class ilObjectDefinition// extends ilSaxParser
 		return ($ilSetting->get("obj_add_new_pos_".$a_type) > 0)
 			? (int) $ilSetting->get("obj_add_new_pos_".$a_type)
 			: (int) $this->obj_data[$a_type]["default_pos"];
+	}
+	
+	/**
+	 * Get plugin object info
+	 * @return type
+	 */
+	public function getPlugins()
+	{
+		$plugins = array();
+		foreach((array) $this->obj_data as $type => $pl_data)
+		{
+			if($this->isPlugin($type))
+			{
+				$plugins[$type] = $pl_data;
+			}
+		}
+		return $plugins;
 	}
 	
 }

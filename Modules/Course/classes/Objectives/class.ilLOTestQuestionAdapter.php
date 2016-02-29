@@ -181,18 +181,18 @@ class ilLOTestQuestionAdapter
 	 * @param ilTestSequence $a_test_sequence
 	 * @param ilTestQuestionRelatedObjectivesList $a_objectives_list
 	 */
-	public function buildQuestionRelatedObjectiveList(ilTestSequence $a_test_sequence, ilTestQuestionRelatedObjectivesList $a_objectives_list)
+	public function buildQuestionRelatedObjectiveList(ilTestQuestionSequence $a_test_sequence, ilTestQuestionRelatedObjectivesList $a_objectives_list)
 	{
 		foreach( $a_test_sequence->getQuestionIds() as $questionId )
 		{
-			if( $a_test_sequence instanceof ilTestSequenceFixedQuestionSet )
-			{
-				$objectiveId = $this->lookupObjectiveIdByFixedQuestionId($questionId);
-			}
-			elseif( $a_test_sequence instanceof ilTestSequenceRandomQuestionSet )
+			if( $a_test_sequence instanceof ilTestRandomQuestionSequence )
 			{
 				$definitionId = $a_test_sequence->getResponsibleSourcePoolDefinitionId($questionId);
 				$objectiveId = $this->lookupObjectiveIdByRandomQuestionSelectionDefinitionId($definitionId);
+			}
+			else
+			{
+				$objectiveId = $this->lookupObjectiveIdByFixedQuestionId($questionId);
 			}
 
 			if($objectiveId)
@@ -201,18 +201,17 @@ class ilLOTestQuestionAdapter
 			}
 		}
 	}
+	
+	protected function lookupObjectiveIdByRandomQuestionSelectionDefinitionId($a_id)
+	{
+		include_once './Modules/Course/classes/Objectives/class.ilLORandomTestQuestionPools.php';
+		return ilLORandomTestQuestionPools::lookupObjectiveIdBySequence($this->getContainerId(),$a_id);
+	}
 
 	protected function lookupObjectiveIdByFixedQuestionId($a_question_id)
 	{
 		include_once './Modules/Course/classes/class.ilCourseObjectiveQuestion.php';
 		return ilCourseObjectiveQuestion::lookupObjectiveOfQuestion($a_question_id);
-	}
-
-	protected function addRandomQuestionRelatedObjective($a_definition_id)
-	{
-		// TODO: determine objective id related to random question selection definition id
-		$objectiveId = 0;
-		return $objectiveId;
 	}
 	
 	protected function getUserId()
@@ -396,6 +395,8 @@ class ilLOTestQuestionAdapter
 				$GLOBALS['ilLog']->write(__METHOD__.': '.print_r($run->getResult(),true));
 				$GLOBALS['ilLog']->write(__METHOD__.'!!!!!!!!!!!!!!!!!!!!: '.print_r($comp,TRUE));
 				
+				include_once("./Services/Tracking/classes/class.ilLPStatusWrapper.php");
+				ilLPStatusWrapper::_updateStatus($this->container_id,$this->user_id);
 			}
 		}
 		return false;

@@ -17,7 +17,7 @@ require_once './Services/UIComponent/Button/classes/class.ilSubmitButton.php';
  * @author		Maximilian Becker <mbecker@databay.de>
  * @author		Maximilian Becker <mbecker@databay.de>
  *          
- * @version		$Id: class.ilTestPlayerAbstractGUI.php 57074 2015-01-13 13:38:45Z jluetzen $
+ * @version		$Id: class.ilTestPlayerAbstractGUI.php 59735 2015-07-01 13:29:34Z bheyser $
  * 
  * @inGroup		ModulesTest
  * 
@@ -40,7 +40,12 @@ abstract class ilTestPlayerAbstractGUI extends ilTestServiceGUI
 	 * @var ilTestProcessLocker
 	 */
 	protected $processLocker;
-
+	
+	/**
+	 * @var ilSetting
+	 */
+	protected $assSettings;
+	
 	/**
 	* ilTestOutputGUI constructor
 	*
@@ -56,6 +61,7 @@ abstract class ilTestPlayerAbstractGUI extends ilTestServiceGUI
 		$this->passwordChecker = new ilTestPasswordChecker($rbacsystem, $ilUser, $this->object);
 		
 		$this->processLocker = null;
+		$this->assSettings = null;
 	}
 	
 	protected function ensureExistingTestSession(ilTestSession $testSession)
@@ -74,10 +80,8 @@ abstract class ilTestPlayerAbstractGUI extends ilTestServiceGUI
 	{
 		global $ilDB;
 		
-		$settings = new ilSetting('assessment');
-
 		require_once 'Modules/Test/classes/class.ilTestProcessLockerFactory.php';
-		$processLockerFactory = new ilTestProcessLockerFactory($settings, $ilDB);
+		$processLockerFactory = new ilTestProcessLockerFactory($this->assSettings, $ilDB);
 
 		$processLockerFactory->setActiveId($activeId);
 		
@@ -132,11 +136,6 @@ abstract class ilTestPlayerAbstractGUI extends ilTestServiceGUI
 	*/
 	public function outIntroductionPageCmd()
 	{
-		if( $this->customRedirectRequired() )
-		{
-			$this->performCustomRedirect();
-		}
-		
 		$this->ctrl->redirectByClass("ilobjtestgui", "infoScreen"); 
 	}
 
@@ -679,10 +678,18 @@ abstract class ilTestPlayerAbstractGUI extends ilTestServiceGUI
 
 	function redirectAfterAutosaveCmd()
 	{
+		$active_id = $this->testSession->getActiveId();
+		$actualpass = $this->object->_getPass($active_id);
+		
+		$this->performTestPassFinishedTasks($actualpass);
+
+		$this->testSession->setLastFinishedPass($this->testSession->getPass());
+		$this->testSession->increaseTestPass();
+
 		$this->tpl->addBlockFile($this->getContentBlockName(), "adm_content", "tpl.il_as_tst_redirect_autosave.html", "Modules/Test");	
 		$this->tpl->setVariable("TEXT_REDIRECT", $this->lng->txt("redirectAfterSave"));
 		$this->tpl->setCurrentBlock("HeadContent");
-		$this->tpl->setVariable("CONTENT_BLOCK", "<meta http-equiv=\"refresh\" content=\"5; url=" . $this->ctrl->getLinkTarget($this, "redirectBack") . "\">");
+		$this->tpl->setVariable("CONTENT_BLOCK", "<meta http-equiv=\"refresh\" content=\"5; url=" . $this->ctrl->getLinkTarget($this, "afterTestPassFinished") . "\">");
 		$this->tpl->parseCurrentBlock();
 	}
 
@@ -790,24 +797,9 @@ abstract class ilTestPlayerAbstractGUI extends ilTestServiceGUI
 		$confirmation->setFormAction($this->ctrl->getFormAction($this, 'confirmFinish'));
 		$confirmation->setHeaderText($this->lng->txt("tst_finish_confirmation_question"));
 		$confirmation->setConfirm($this->lng->txt("tst_finish_confirm_button"), 'confirmFinish');
-		if($this->object->canShowSolutionPrintview($ilUser->getId()))
-		{
-			$confirmation->setCancel($this->lng->txt("tst_finish_confirm_list_of_answers_button"), 'backConfirmFinish');
-		}
-		else
-		{
-			$confirmation->setCancel($this->lng->txt("tst_finish_confirm_cancel_button"), 'backConfirmFinish');
-		}
+		$confirmation->setCancel($this->lng->txt("tst_finish_confirm_cancel_button"), 'backConfirmFinish');
 
-		if($this->object->getKioskMode())
-		{
-			$this->tpl->addBlockfile($this->getContentBlockName(), 'content', "tpl.il_as_tst_kiosk_mode_content.html", "Modules/Test");
-			$this->tpl->setContent($confirmation->getHtml());
-		}
-		else
-		{
-			$this->tpl->setVariable($this->getContentBlockName(), $confirmation->getHtml());
-		}
+		$this->populateHelperGuiContent($confirmation);
 	}
 
 	function finishTestCmd($requires_confirmation = true)
@@ -860,44 +852,8 @@ abstract class ilTestPlayerAbstractGUI extends ilTestServiceGUI
 		// Last try in limited tries & !confirmed
 		if (($requires_confirmation) && ($actualpass == $this->object->getNrOfTries() - 1))
 		{
-			if ($this->object->canShowSolutionPrintview($ilUser->getId()))
-			{
-				$template = new ilTemplate("tpl.il_as_tst_finish_navigation.html", TRUE, TRUE, "Modules/Test");
-				$template->setVariable("BUTTON_FINISH", $this->lng->txt("btn_next"));
-				$template->setVariable("BUTTON_CANCEL", $this->lng->txt("btn_previous"));
-				if ($this->object->getEnableExamview())
-				{
-					$template->setVariable("CANCEL_CMD", 'finishTest');
-				}
-				else if($this->object->getListOfQuestionsEnd())
-				{
-					$template->setVariable("CANCEL_CMD", 'outQuestionSummary');
-				}
-				else
-				{
-					$template->setVariable("CANCEL_CMD", 'redirectQuestion');
-				}
-				if($this->object->getListOfQuestionsEnd())
-				{
-					$template->setVariable("CANCEL_CMD", 'finishTest');
-				}
-				else
-				{
-					$template->setVariable("CANCEL_CMD", 'redirectQuestion');
-				}
-				$template_top = new ilTemplate("tpl.il_as_tst_list_of_answers_topbuttons.html", TRUE, TRUE, "Modules/Test");
-				$template_top->setCurrentBlock("button_print");
-				$template_top->setVariable("BUTTON_PRINT", $this->lng->txt("print"));
-				$template_top->parseCurrentBlock();
-
-				$this->showListOfAnswers($active_id, NULL, $template_top->get(), $template->get());
-				return;
-			}
-			else
-			{
-				// show confirmation page
-				return $this->confirmFinishTestCmd();
-			}
+			// show confirmation page
+			return $this->confirmFinishTestCmd();
 		}
 
 		// Last try in limited tries & confirmed?
@@ -965,12 +921,12 @@ abstract class ilTestPlayerAbstractGUI extends ilTestServiceGUI
 		$lastFinishedPass = $this->testSession->getLastFinishedPass();
 
 		// handle test signature
-
 		if ( $this->isTestSignRedirectRequired($activeId, $lastFinishedPass) )
 		{
 			$this->ctrl->redirectByClass('ilTestSignatureGUI', 'invokeSignaturePlugin');
 		}
 
+		// show final statement
 		if(!$_GET['skipfinalstatement'])
 		{
 			if ($this->object->getShowFinalStatement())
@@ -997,13 +953,7 @@ abstract class ilTestPlayerAbstractGUI extends ilTestServiceGUI
 			}
 		}
 
-		// custom after test redirect (ilTestOutput - objective oriented sessions)
-		if( $this->customRedirectRequired() )
-		{
-			$this->performCustomRedirect();
-		}
-
-		// default redirect (pass results)
+		// default redirect (pass overview when enabled, otherwise infoscreen)
 		$this->redirectBackCmd();
 	}
 
@@ -1038,10 +988,41 @@ abstract class ilTestPlayerAbstractGUI extends ilTestServiceGUI
 	 */
 	protected function archiveParticipantSubmission( $active, $pass )
 	{
+		global $ilObjDataCache;
+
+		require_once 'Modules/Test/classes/class.ilTestResultHeaderLabelBuilder.php';
+		$testResultHeaderLabelBuilder = new ilTestResultHeaderLabelBuilder($this->lng, $ilObjDataCache);
+
+		$objectivesList = null;
+
+		if( $this->getObjectiveOrientedContainer()->isObjectiveOrientedPresentationRequired() )
+		{
+			$testSequence = $this->testSequenceFactory->getSequenceByActiveIdAndPass($this->testSession->getActiveId(), $this->testSession->getPass());
+			$testSequence->loadFromDb();
+			$testSequence->loadQuestions();
+
+			require_once 'Modules/Course/classes/Objectives/class.ilLOTestQuestionAdapter.php';
+			$objectivesAdapter = ilLOTestQuestionAdapter::getInstance($this->testSession);
+
+			$objectivesList = $this->buildQuestionRelatedObjectivesList($objectivesAdapter, $testSequence);
+			$objectivesList->loadObjectivesTitles();
+
+			$testResultHeaderLabelBuilder->setObjectiveOrientedContainerId($this->testSession->getObjectiveOrientedContainerId());
+			$testResultHeaderLabelBuilder->setUserId($this->testSession->getUserId());
+			$testResultHeaderLabelBuilder->setTestObjId($this->object->getId());
+			$testResultHeaderLabelBuilder->setTestRefId($this->object->getRefId());
+			$testResultHeaderLabelBuilder->initObjectiveOrientedMode();
+		}
+
+		$results = $this->object->getTestResult(
+			$active, $pass, false, !$this->getObjectiveOrientedContainer()->isObjectiveOrientedPresentationRequired()
+		);
+
 		require_once 'class.ilTestEvaluationGUI.php';
 		$testevaluationgui = new ilTestEvaluationGUI($this->object);
-		$results = $this->object->getTestResult($active,$pass);
-		$results_output = $testevaluationgui->getPassListOfAnswers($results, $active, $pass, false, false, false, false);
+		$results_output = $testevaluationgui->getPassListOfAnswers(
+			$results, $active, $pass, false, false, false, false, false, $objectivesList, $testResultHeaderLabelBuilder
+		);
 
 		require_once './Modules/Test/classes/class.ilTestArchiver.php';
 		global $ilSetting;
@@ -1104,8 +1085,12 @@ abstract class ilTestPlayerAbstractGUI extends ilTestServiceGUI
 				}
 			}
 		}
-		$passdata = $this->object->getTestResult($active, $pass);
-		$overview = $testevaluationgui->getPassListOfAnswers($passdata, $active, $pass, true, false, false, true);
+		$passdata = $this->object->getTestResult(
+			$active, $pass, false, !$this->getObjectiveOrientedContainer()->isObjectiveOrientedPresentationRequired()
+		);
+		$overview = $testevaluationgui->getPassListOfAnswers(
+			$passdata, $active, $pass, true, false, false, true, false, $objectivesList, $testResultHeaderLabelBuilder
+		);
 		$filename = ilUtil::getWebspaceDir() . '/assessment/scores-'.$this->object->getId() . '-' . $active . '-' . $pass . '.pdf';
 		ilTestPDFGenerator::generatePDF($overview, ilTestPDFGenerator::PDF_OUTPUT_FILE, $filename);
 		$archiver->handInTestResult($active, $pass, $filename);
@@ -1134,7 +1119,7 @@ abstract class ilTestPlayerAbstractGUI extends ilTestServiceGUI
 		$template = new ilTemplate("tpl.il_as_tst_final_statement.html", TRUE, TRUE, "Modules/Test");
 		$this->ctrl->setParameter($this, "skipfinalstatement", 1);
 		$template->setVariable("FORMACTION", $this->ctrl->getFormAction($this, "afterTestPassFinished"));
-		$template->setVariable("FINALSTATEMENT", $this->object->getFinalStatement());
+		$template->setVariable("FINALSTATEMENT", $this->object->prepareTextareaOutput($this->object->getFinalStatement(), true));
 		$template->setVariable("BUTTON_CONTINUE", $this->lng->txt("btn_next"));
 		$this->tpl->setVariable($this->getContentBlockName(), $template->get());
 	}
@@ -1632,40 +1617,7 @@ abstract class ilTestPlayerAbstractGUI extends ilTestServiceGUI
 	
 	function backConfirmFinishCmd()
 	{
-		global $ilUser;
-		if ($this->object->canShowSolutionPrintview($ilUser->getId()))
-		{
-			$template = new ilTemplate("tpl.il_as_tst_finish_navigation.html", TRUE, TRUE, "Modules/Test");
-			$template->setVariable("BUTTON_FINISH", $this->lng->txt("btn_next"));
-			$template->setVariable("BUTTON_CANCEL", $this->lng->txt("btn_previous"));
-			if ($this->object->getEnableExamview())
-			{
-				$template->setVariable("CANCEL_CMD", 'finishTest');
-			}
-			else if($this->object->getListOfQuestionsEnd())
-			{
-				$template->setVariable("CANCEL_CMD", 'outQuestionSummary');
-			}
-			else
-			{
-				$template->setVariable("CANCEL_CMD", 'redirectQuestion');
-			}
-			$template_top = new ilTemplate("tpl.il_as_tst_list_of_answers_topbuttons.html", TRUE, TRUE, "Modules/Test");
-			$template_top->setCurrentBlock("button_print");
-			$template_top->setVariable("BUTTON_PRINT", $this->lng->txt("print"));
-			$template_top->parseCurrentBlock();
-			$active_id = $this->testSession->getActiveId();
-			return $this->showListOfAnswers($active_id, NULL, $template_top->get(), $template->get());
-		}
-		else
-		{
-			$this->ctrl->redirect($this, 'gotoQuestion');
-		}
-	}
-	
-	function finishListOfAnswersCmd()
-	{
-		$this->confirmFinishTestCmd();
+		$this->ctrl->redirect($this, 'gotoQuestion');
 	}
 	
 	/**
@@ -1717,7 +1669,9 @@ abstract class ilTestPlayerAbstractGUI extends ilTestServiceGUI
 
 		$this->tpl->addBlockFile($this->getContentBlockName(), "adm_content", "tpl.il_as_tst_finish_list_of_answers.html", "Modules/Test");
 
-		$result_array =& $this->object->getTestResult($active_id, $pass);
+		$result_array =& $this->object->getTestResult(
+			$active_id, $pass, false, !$this->getObjectiveOrientedContainer()->isObjectiveOrientedPresentationRequired()
+		);
 
 		$counter = 1;
 		// output of questions with solutions
@@ -2014,27 +1968,12 @@ abstract class ilTestPlayerAbstractGUI extends ilTestServiceGUI
 
 		return true;
 	}
-	
-	protected function customRedirectRequired()
-	{
-		return false;
-	}
-	
-	protected function performCustomRedirect()
-	{
-		return;
-	}
 
 	/**
 	 * @return string
 	 */
 	protected function getIntroductionPageButtonLabel()
 	{
-		if( $this->testSession->isObjectiveOriented() )
-		{
-			return $this->lng->txt("save_back_to_objective_container");
-		}
-		
 		return $this->lng->txt("save_introduction");
 	}
 	
@@ -2054,7 +1993,7 @@ abstract class ilTestPlayerAbstractGUI extends ilTestServiceGUI
 		
 		return true;
 	}
-	
+
 	protected function showAnswerOptionalQuestionsConfirmation()
 	{
 		require_once 'Modules/Test/classes/confirmations/class.ilTestAnswerOptionalQuestionsConfirmationGUI.php';
@@ -2064,9 +2003,9 @@ abstract class ilTestPlayerAbstractGUI extends ilTestServiceGUI
 		$confirmation->setCancelCmd('cancelAnswerOptionalQuestions');
 		$confirmation->setConfirmCmd('confirmAnswerOptionalQuestions');
 
-		$confirmation->build();
+		$confirmation->build($this->object->isFixedTest());
 		
-		$this->tpl->setVariable($this->getContentBlockName(), $this->ctrl->getHTML($confirmation));
+		$this->populateHelperGuiContent($confirmation);
 	}
 	
 	protected function confirmAnswerOptionalQuestionsCmd()
@@ -2091,4 +2030,54 @@ abstract class ilTestPlayerAbstractGUI extends ilTestServiceGUI
 
 		$this->ctrl->redirect($this, 'redirectQuestion');
 	}
+
+	/**
+	 * @param $helperGui
+	 */
+	protected function populateHelperGuiContent($helperGui)
+	{
+		if($this->object->getKioskMode())
+		{
+			$this->tpl->addBlockfile($this->getContentBlockName(), 'content', "tpl.il_as_tst_kiosk_mode_content.html", "Modules/Test");
+			$this->tpl->setContent($this->ctrl->getHTML($helperGui));
+		} else
+		{
+			$this->tpl->setVariable($this->getContentBlockName(), $this->ctrl->getHTML($helperGui));
+		}
+	}
+
+	protected function initAssessmentSettings()
+	{
+		$this->assSettings = new ilSetting('assessment');
+	}
+
+	/**
+	 * @param ilTestSession $testSession
+	 */
+	protected function handleSkillTriggering(ilTestSession $testSession)
+	{
+		$questionList = $this->buildTestPassQuestionList();
+		$questionList->load();
+
+		$testResults = $this->object->getTestResult($testSession->getActiveId(), $testSession->getPass(), true);
+		
+		require_once 'Modules/Test/classes/class.ilTestSkillEvaluation.php';
+		$skillEvaluation = new ilTestSkillEvaluation($this->db, $this->object->getTestId(), $this->object->getRefId());
+
+		$skillEvaluation->setUserId($testSession->getUserId());
+		$skillEvaluation->setActiveId($testSession->getActiveId());
+		$skillEvaluation->setPass($testSession->getPass());
+		
+		$skillEvaluation->setNumRequiredBookingsForSkillTriggering($this->assSettings->get(
+			'ass_skl_trig_num_answ_barrier', ilObjAssessmentFolder::DEFAULT_SKL_TRIG_NUM_ANSWERS_BARRIER
+		));
+
+
+		$skillEvaluation->init($questionList);
+		$skillEvaluation->evaluate($testResults);
+		
+		$skillEvaluation->handleSkillTriggering();
+	}
+	
+	abstract protected function buildTestPassQuestionList();
 }

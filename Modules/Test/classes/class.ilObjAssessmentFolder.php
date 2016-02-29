@@ -10,7 +10,7 @@ require_once 'Modules/TestQuestionPool/classes/class.ilAssQuestionProcessLocker.
  * @author	Helmut Schottmüller <hschottm@gmx.de>
  * @author	Björn Heyser <bheyser@databay.de>
  * 
- * @version	$Id: class.ilObjAssessmentFolder.php 56504 2014-12-17 10:21:06Z bheyser $
+ * @version	$Id: class.ilObjAssessmentFolder.php 59673 2015-06-30 11:35:27Z bheyser $
  * 
  * @ingroup ModulesTest
  */
@@ -23,6 +23,8 @@ class ilObjAssessmentFolder extends ilObject
 	const ASS_PROC_LOCK_MODE_FILE = 'file';
 	const ASS_PROC_LOCK_MODE_DB = 'db';
 
+	const DEFAULT_SKL_TRIG_NUM_ANSWERS_BARRIER = 1;
+	
 	var $setting;
 	
 	/**
@@ -594,5 +596,17 @@ class ilObjAssessmentFolder extends ilObject
 	public static function getValidAssessmentProcessLockModes()
 	{
 		return array(self::ASS_PROC_LOCK_MODE_NONE, self::ASS_PROC_LOCK_MODE_FILE, self::ASS_PROC_LOCK_MODE_DB);
+	}
+	
+	public function getSkillTriggeringNumAnswersBarrier()
+	{
+		return $this->setting->get(
+			'ass_skl_trig_num_answ_barrier', self::DEFAULT_SKL_TRIG_NUM_ANSWERS_BARRIER
+		);
+	}
+	
+	public function setSkillTriggeringNumAnswersBarrier($skillTriggeringNumAnswersBarrier)
+	{
+		$this->setting->set('ass_skl_trig_num_answ_barrier', $skillTriggeringNumAnswersBarrier);
 	}
 }

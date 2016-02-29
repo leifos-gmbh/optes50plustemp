@@ -17,7 +17,7 @@ require_once './Modules/TestQuestionPool/classes/class.ilUserQuestionResult.php'
  * @author		Björn Heyser <bheyser@databay.de>
  * @author		Maximilian Becker <mbecker@databay.de>
  * 
- * @version		$Id: class.assImagemapQuestion.php 54490 2014-10-22 14:01:22Z bheyser $
+ * @version		$Id: class.assImagemapQuestion.php 57331 2015-01-22 10:14:28Z jluetzen $
  * 
  * @ingroup		ModulesTestQuestionPool
  */
@@ -686,6 +686,11 @@ class assImagemapQuestion extends assQuestion implements ilObjQuestionScoringAdj
 	public function calculateReachedPointsFromPreviewSession(ilAssQuestionPreviewSession $previewSession)
 	{
 		return $this->calculateReachedPointsForSolution(array_values($previewSession->getParticipantsSolution()));
+	}
+
+	public function isAutosaveable()
+	{
+		return false; // #15217
 	}
 
 	/**

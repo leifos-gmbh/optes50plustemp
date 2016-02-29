@@ -13,7 +13,7 @@ include_once 'Services/Tracking/classes/class.ilObjUserTracking.php';
  *
  * @author Stefan Meyer <meyer@leifos.com>
  *
- * @version $Id: class.ilLearningProgressBaseGUI.php 56831 2015-01-07 11:22:27Z smeyer $
+ * @version $Id: class.ilLearningProgressBaseGUI.php 57749 2015-02-03 06:36:22Z bheyser $
  *
  * @package ilias-tracking
  *
@@ -171,7 +171,7 @@ class ilLearningProgressBaseGUI
 
 					if($has_read)
 					{
-						if(!$this->isAnonymized() && !in_array($this->obj_type, array('tst', 'htlm', 'exc', 'sess')))
+						if(!$this->isAnonymized() && !in_array($this->obj_type, array('tst', 'htlm', 'exc', 'sess')) && !($olp instanceof ilPluginLP))
 						{
 							$this->tabs_gui->addSubTabTarget("trac_matrix",
 															$this->ctrl->getLinkTargetByClass("illplistofobjectsgui", 'showUserObjectMatrix'),
@@ -183,7 +183,8 @@ class ilLearningProgressBaseGUI
 														"", "", "", $a_active == self::LP_ACTIVE_SUMMARY);
 					}
 				}				
-				if($rbacsystem->checkAccess('edit_learning_progress',$this->getRefId()))
+				if(!($olp instanceof ilPluginLP) &&
+					$rbacsystem->checkAccess('edit_learning_progress',$this->getRefId()))
 				{
 					$this->tabs_gui->addSubTabTarget('trac_settings',
 													 $this->ctrl->getLinkTargetByClass('illplistofsettingsgui',''),
@@ -380,7 +381,7 @@ class ilLearningProgressBaseGUI
 	/**
 	* show details about current object. Uses an existing info_gui object.
 	*/
-	function __showObjectDetails(&$info,$item_id = 0)
+	function __showObjectDetails(&$info,$item_id = 0,$add_section = true)
 	{
 		global $ilObjDataCache;
 
@@ -395,7 +396,10 @@ class ilLearningProgressBaseGUI
 		   ilMDEducational::_getTypicalLearningTimeSeconds($details_id))
 		{
 			// Section object details
-			$info->addSection($this->lng->txt('details'));
+			if($add_section)
+			{
+				$info->addSection($this->lng->txt('details'));
+			}
 
 			if($mode == ilLPObjSettings::LP_MODE_VISITS)
 			{
@@ -444,8 +448,14 @@ class ilLearningProgressBaseGUI
 		$type = $ilObjDataCache->lookupType($item_id);
 		
 		// Section learning_progress
-		$info->addSection($this->lng->txt('trac_learning_progress'));
-	
+		// $info->addSection($this->lng->txt('trac_learning_progress'));
+		// see ilLPTableBaseGUI::parseTitle();
+		$info->addSection($this->lng->txt("trac_progress").": ".ilObject::_lookupTitle($item_id));
+		
+		$olp = ilObjectLP::getInstance($item_id);
+		$info->addProperty($this->lng->txt('trac_mode'),
+			$olp->getModeText($olp->getCurrentMode()));
+		
 		switch($type)
 		{
 			case 'lm':
@@ -467,16 +477,8 @@ class ilLearningProgressBaseGUI
 				{
 					$info->addProperty($this->lng->txt('trac_spent_time'),ilFormat::_secondsToString($progress['spent_seconds']));
 				}
+				// fallthrough
 				
-				// display status as image
-				include_once("./Services/Tracking/classes/class.ilLearningProgressBaseGUI.php");
-				$status = $this->__readStatus($item_id,$user_id);
-				$status_path = ilLearningProgressBaseGUI::_getImagePathForStatus($status);
-				$status_text = ilLearningProgressBaseGUI::_getStatusText($status);
-				$info->addProperty($this->lng->txt('trac_status'), 
-					ilUtil::img($status_path, $status_text)." ".$status_text);
-				break;
-
 			case 'exc':
 			case 'tst':
 			case 'crs':
@@ -489,6 +491,19 @@ class ilLearningProgressBaseGUI
 				$status_text = ilLearningProgressBaseGUI::_getStatusText($status);
 				$info->addProperty($this->lng->txt('trac_status'), 
 					ilUtil::img($status_path, $status_text)." ".$status_text);
+				
+				// #15334 - see ilLPTableBaseGUI::isPercentageAvailable()
+				$mode = $olp->getCurrentMode();
+				if(in_array($mode, array(ilLPObjSettings::LP_MODE_TLT, 
+					ilLPObjSettings::LP_MODE_VISITS, 
+					// ilLPObjSettings::LP_MODE_OBJECTIVES, 
+					ilLPObjSettings::LP_MODE_SCORM,
+					ilLPObjSettings::LP_MODE_TEST_PASSED)))
+				{
+					include_once 'Services/Tracking/classes/class.ilLPStatus.php';
+					$perc = ilLPStatus::_lookupPercentage($item_id, $user_id);
+					$info->addProperty($this->lng->txt('trac_percentage'), (int)$perc."%");
+				}				
 				break;
 
 		}
